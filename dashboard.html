@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roomie Ranker — The Hostel Wall</title>
+<meta name="description" content="Rate your roomies, post complaints, ask the hostel for help and chat with WardenBot AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080a0f; --card:rgba(255,255,255,.045); --card2:rgba(255,255,255,.07); --bd:rgba(255,255,255,.1);
+  --tx:#eceef4; --mut:#8d95aa; --in:#6366f1; --in2:#818cf8; --am:#f59e0b; --rd:#f87171; --gr:#34d399; --bl:#60a5fa;
+  --bottom-h:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--tx);line-height:1.5;min-height:100vh;
+  background-image:
+    radial-gradient(60rem 30rem at 10% -10%, rgba(99,102,241,.2), transparent 60%),
+    radial-gradient(50rem 28rem at 100% 40%, rgba(245,158,11,.1), transparent 60%);
+  background-attachment:fixed;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+img{display:block}
+:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:50;background:rgba(8,10,15,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--bd)}
+.nav-in{max-width:1240px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;color:var(--tx);white-space:nowrap}
+.brand i{font-style:normal;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px;background:linear-gradient(135deg,var(--in),var(--am))}
+.brand span{color:var(--am)}
+.links{display:flex;gap:4px;margin:0 auto 0 14px}
+.links a{padding:8px 12px;border-radius:10px;font-size:13px;font-weight:700;color:var(--mut);text-decoration:none;white-space:nowrap;transition:background .2s,color .2s}
+.links a:hover{color:var(--tx);background:rgba(255,255,255,.06)}
+.links a.on{color:#fff;background:rgba(99,102,241,.28)}
+.me{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:4px 12px 4px 4px;font-size:13px;font-weight:700;white-space:nowrap}
+.me img{width:30px;height:30px;border-radius:50%;background:#1b1f2e}
+.room-b{background:rgba(99,102,241,.2);color:var(--in2);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:800}
+.btn{border:1px solid var(--bd);background:var(--card2);border-radius:12px;padding:9px 14px;font-weight:700;font-size:13px;transition:transform .15s,background .2s,border-color .2s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px) scale(1.03);border-color:rgba(255,255,255,.25)}
+.btn:active{transform:scale(.96)}
+.btn.pro{background:linear-gradient(135deg,#f59e0b,#f97316);border-color:transparent;color:#1a1204}
+.btn.primary{background:linear-gradient(135deg,var(--in),#8b5cf6);border-color:transparent;color:#fff;box-shadow:0 8px 22px rgba(99,102,241,.35)}
+.btn.ghost{background:transparent}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+.ico{display:none}
+@keyframes reviewBounce{0%{transform:scale(1)}30%{transform:scale(.9)}60%{transform:scale(1.12)}80%{transform:scale(.98)}100%{transform:scale(1)}}
+.btn-bounce:active,.btn-bounce.pop{animation:reviewBounce .45s cubic-bezier(.34,1.56,.64,1)}
+
+.bottom{display:none;position:fixed;left:0;right:0;bottom:0;z-index:60;height:calc(var(--bottom-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
+  background:rgba(12,14,22,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--bd);grid-template-columns:repeat(4,1fr)}
+.bottom a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:var(--mut);font-size:11px;font-weight:800;position:relative}
+.bottom a b{font-size:20px;line-height:1;font-weight:400;transition:transform .2s}
+.bottom a.on{color:var(--am)}
+.bottom a.on b{transform:translateY(-2px) scale(1.15)}
+.bottom a.on::before{content:"";position:absolute;top:0;width:28px;height:3px;border-radius:0 0 4px 4px;background:var(--am)}
+
+/* LAYOUT */
+.wrap{max-width:1240px;margin:0 auto;padding:22px 16px 100px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px;align-items:start}
+.main{min-width:0}
+.view{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.side{position:sticky;top:84px;display:grid;gap:16px;min-width:0}
+.sec-h{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.sec-h h2{font-size:22px;letter-spacing:-.02em}
+.sec-h p{color:var(--mut);font-size:13px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;transition:transform .2s,border-color .2s,background .2s}
+.hov:hover{transform:translateY(-2px) scale(1.012);border-color:rgba(255,255,255,.2);background:var(--card2)}
+.sub-h{font-size:15px;margin:22px 0 10px;letter-spacing:-.01em}
+
+/* RESIDENTS */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.res-top{display:flex;gap:12px;align-items:center}
+.res-top img{width:56px;height:56px;border-radius:50%;background:#1b1f2e;flex:none}
+.res-name{font-weight:800;font-size:16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;word-break:break-word}
+.you{background:var(--am);color:#1a1204;font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px}
+.res-meta{color:var(--mut);font-size:12px}
+.bchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.bchip{font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;background:rgba(99,102,241,.16);border:1px solid rgba(99,102,241,.4);color:#c7d2fe;cursor:help}
+.res-score{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 10px;flex-wrap:wrap}
+.avg{font-weight:800;font-size:20px;color:var(--am)}
+.avg small{color:var(--mut);font-weight:600;font-size:12px;margin-left:4px}
+.badge{font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;border:1px solid}
+.b-un{color:var(--mut);border-color:var(--bd)}
+.b-saint{color:var(--gr);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.1)}
+.b-chaos{color:var(--am);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.1)}
+.b-menace{color:var(--rd);border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.1)}
+.res-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px dashed var(--bd);padding-top:10px}
+.star-row{display:inline-flex;gap:2px}
+.star{background:none;border:0;font-size:22px;line-height:1;color:#3b4054;padding:2px;transition:transform .12s,color .12s}
+.star.on{color:var(--am);text-shadow:0 0 10px rgba(245,158,11,.5)}
+.star:hover:not([disabled]){transform:scale(1.25)}
+.star[disabled]{cursor:not-allowed;opacity:.5}
+.small-btn{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35);color:#fca5a5;border-radius:10px;padding:6px 10px;font-weight:800;font-size:12px;white-space:nowrap;transition:transform .15s}
+.small-btn:hover{transform:scale(1.06)}
+.empty{border:1px dashed var(--bd);border-radius:18px;padding:30px 16px;text-align:center;color:var(--mut);font-size:14px}
+.empty b{display:block;color:var(--tx);font-size:16px;margin-bottom:4px}
+
+/* COMPOSER */
+.composer{display:grid;gap:12px;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rowf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+label.f{display:grid;gap:5px;font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+select,input[type=text],input[type=search],textarea{
+  width:100%;background:rgba(0,0,0,.35);border:1px solid var(--bd);border-radius:12px;padding:11px 12px;font-size:14px;outline:none;
+  transition:border-color .2s,box-shadow .2s;text-transform:none;letter-spacing:0;font-weight:500}
+select option{background:#12151f}
+textarea{resize:vertical;min-height:84px}
+select:focus,input:focus,textarea:focus{border-color:var(--in2);box-shadow:0 0 0 3px rgba(99,102,241,.22)}
+.count{font-size:12px;color:var(--mut);font-weight:700}
+.count.warn{color:var(--am)}
+.count.max{color:var(--rd)}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;user-select:none}
+.chk input{width:17px;height:17px;accent-color:var(--in)}
+.rate-pick{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--mut)}
+.err{color:var(--rd);font-size:12px;min-height:16px;font-weight:600}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(0,0,0,.35);border:1px solid var(--bd);border-radius:14px;padding:4px}
+.seg button{border:0;background:transparent;border-radius:10px;padding:9px;font-weight:800;font-size:13px;color:var(--mut);transition:all .2s}
+.seg button.on{background:linear-gradient(135deg,var(--in),#8b5cf6);color:#fff}
+.qchips{display:flex;flex-wrap:wrap;gap:6px}
+.qchips button{background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:4px 11px;font-size:12px;font-weight:700}
+.qchips button:hover{border-color:var(--am)}
+
+/* TOOLBAR */
+.toolbar{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;transition:all .15s}
+.chip:hover{border-color:var(--in2)}
+.chip.on{background:rgba(99,102,241,.25);border-color:var(--in2);color:#fff}
+
+/* POSTS */
+.feed{display:grid;gap:12px}
+.post-head{display:flex;gap:12px;align-items:center}
+.post-head img{width:46px;height:46px;border-radius:50%;background:#1b1f2e;flex:none}
+.post-who{min-width:0;flex:1}
+.post-who .l{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:800;word-break:break-word}
+.post-who .s{color:var(--mut);font-size:12px}
+.rate-badge{background:rgba(245,158,11,.14);color:var(--am);border:1px solid rgba(245,158,11,.35);border-radius:999px;padding:3px 10px;font-weight:800;font-size:13px;white-space:nowrap}
+.tag-pill{display:inline-block;margin:10px 0 6px;background:rgba(99,102,241,.16);border:1px solid rgba(99,102,241,.4);color:#c7d2fe;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:800}
+.tag-pill.good{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.4);color:#6ee7b7}
+.post-text{white-space:pre-wrap;word-break:break-word;font-size:15px}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.act{background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:999px;padding:6px 13px;font-size:13px;font-weight:700;transition:transform .15s,background .2s}
+.act:hover{transform:scale(1.05)}
+.act.on{background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.5);color:#fcd34d}
+.act.have{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.45);color:#6ee7b7}
+.act.del{margin-left:auto;color:#fca5a5}
+.act.del.armed{background:rgba(248,113,113,.25);border-color:var(--rd);color:#fff}
+.drawer{margin-top:12px;border-top:1px dashed var(--bd);padding-top:12px;display:grid;gap:10px}
+.reply{background:rgba(0,0,0,.28);border-radius:12px;padding:8px 12px;font-size:14px;word-break:break-word;border:1px solid transparent}
+.reply.best{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.08)}
+.reply b{font-size:12px;color:var(--in2)} .reply small{color:var(--mut);margin-left:6px;font-size:11px}
+.reply .rb{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.reply .rb button{background:none;border:1px solid var(--bd);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:var(--mut)}
+.reply .rb button:hover{border-color:var(--gr);color:var(--gr)}
+.best-tag{color:var(--gr);font-size:11px;font-weight:800;margin-left:6px}
+.reply-form{display:flex;gap:8px}
+.reply-form input{flex:1;min-width:0}
+.status{font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;border:1px solid}
+.status.open{color:var(--am);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.1)}
+.status.solved{color:var(--gr);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.1)}
+.status.hot{color:#fb923c;border-color:rgba(251,146,60,.5);background:rgba(251,146,60,.12)}
+.flash{animation:flash 1.6s ease}
+@keyframes flash{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}25%{box-shadow:0 0 0 4px rgba(245,158,11,.55)}}
+
+/* TRENDING */
+.trend{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:6px}
+.t-card{text-align:left;background:linear-gradient(135deg,rgba(251,146,60,.14),rgba(99,102,241,.12));border:1px solid rgba(251,146,60,.35);border-radius:16px;padding:12px;transition:transform .15s;display:grid;gap:5px}
+.t-card:hover{transform:translateY(-2px) scale(1.02)}
+.t-card .r{font-weight:800;font-size:12px;color:#fb923c}
+.t-card .tx{font-size:14px;font-weight:600;word-break:break-word}
+.t-card .st{font-size:12px;color:var(--mut);font-weight:700}
+
+/* BOARD SUMMARY */
+.summary{display:grid;grid-template-columns:140px 1fr;gap:18px;align-items:center;margin-bottom:14px}
+.big{text-align:center}
+.big .n{font-size:40px;font-weight:800;color:var(--am);line-height:1}
+.big .t{color:var(--mut);font-size:12px;margin-top:4px}
+.bars{display:grid;gap:7px}
+.bar{display:grid;grid-template-columns:132px 1fr 34px;gap:8px;align-items:center;font-size:12px;font-weight:700}
+.bar .tr{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar .tr i{display:block;height:100%;background:linear-gradient(90deg,var(--in),var(--am));border-radius:99px;transition:width .5s}
+.bar span:last-child{text-align:right;color:var(--mut)}
+
+/* HALL OF FAME */
+.rank{display:grid;gap:8px}
+.rk{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.22);border-radius:14px;padding:10px 12px}
+.rk .md{font-size:22px;width:34px;text-align:center;flex:none;font-weight:800;color:var(--mut)}
+.rk img{width:40px;height:40px;border-radius:50%;background:#1b1f2e;flex:none}
+.rk .nm{flex:1;min-width:0;font-weight:800;word-break:break-word}
+.rk .nm small{display:block;color:var(--mut);font-weight:600;font-size:12px}
+.rk .sc{font-weight:800;color:var(--am);white-space:nowrap;text-align:right}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.bd-card{display:grid;gap:4px}
+.bd-card .ic{font-size:30px}
+.bd-card b{font-size:15px}
+.bd-card p{color:var(--mut);font-size:12px}
+.bd-card .hd{margin-top:4px;font-size:13px;font-weight:800;color:var(--am)}
+.bd-card .hd.none{color:var(--mut);font-weight:600}
+.poll-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.poll-btns button{border:1px solid var(--bd);background:var(--card);border-radius:14px;padding:12px;font-weight:800;transition:all .15s}
+.poll-btns button:hover{transform:scale(1.03)}
+.poll-btns button.on{border-color:var(--am);background:rgba(245,158,11,.16);color:#fcd34d}
+.pbar{height:12px;border-radius:99px;overflow:hidden;background:rgba(248,113,113,.35);display:flex}
+.pbar i{display:block;background:var(--gr);transition:width .5s}
+.hist{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px;text-align:center;font-size:11px;color:var(--mut);font-weight:700}
+.hist .col{display:grid;gap:4px;justify-items:center}
+.hist .tube{width:100%;max-width:30px;height:54px;border-radius:8px;background:rgba(255,255,255,.07);display:flex;align-items:flex-end;overflow:hidden}
+.hist .tube i{display:block;width:100%;background:linear-gradient(180deg,var(--gr),#059669)}
+
+/* SIDEBAR */
+.side h3{font-size:14px;margin-bottom:10px;letter-spacing:-.01em}
+.lead{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(0,0,0,.25);margin-bottom:8px}
+.lead img{width:42px;height:42px;border-radius:50%;background:#1b1f2e;flex:none}
+.lead small{display:block;color:var(--mut);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.lead b{display:block;word-break:break-word}
+.lead .sc{margin-left:auto;font-weight:800;color:var(--am);white-space:nowrap}
+.lead.bad .sc{color:var(--rd)}
+.lead.none{color:var(--mut);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stats div{background:rgba(0,0,0,.25);border-radius:14px;padding:10px 4px}
+.stats b{display:block;font-size:22px;color:var(--am)}
+.stats span{font-size:11px;color:var(--mut);font-weight:700}
+.lock{position:relative;overflow:hidden}
+.ghosts{display:grid;gap:7px;margin:8px 0 12px;filter:blur(5px);opacity:.7;pointer-events:none;user-select:none}
+.ghosts div{display:flex;align-items:center;gap:8px}
+.ghosts i{width:26px;height:26px;border-radius:50%;background:#475069}
+.ghosts s{display:block;height:10px;border-radius:6px;background:#6b7490;text-decoration:none}
+.muted{color:var(--mut);font-size:13px}
+.promo{background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(99,102,241,.2));border-color:rgba(245,158,11,.35)}
+.promo p{color:#d6d9e6;font-size:13px;margin-bottom:10px}
+
+/* MODAL */
+.ov{position:fixed;inset:0;z-index:100;background:rgba(3,4,8,.72);backdrop-filter:blur(6px);display:grid;place-items:center;padding:16px;overflow-y:auto}
+.modal{width:100%;max-width:440px;background:#10131c;border:1px solid var(--bd);border-radius:22px;padding:24px 20px;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pop .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+.x{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--bd);background:var(--card);font-size:16px}
+.x[disabled]{opacity:.3;cursor:not-allowed}
+.modal h2{font-size:22px;letter-spacing:-.02em;margin-bottom:4px}
+.price{font-size:34px;font-weight:800;color:var(--am);margin:8px 0 2px}
+.price small{font-size:14px;color:var(--mut);font-weight:600}
+.perks{list-style:none;display:grid;gap:8px;margin:14px 0}
+.perks li{background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:12px;padding:9px 12px;font-size:13px}
+.perks b{color:var(--am)}
+.upis{display:flex;gap:8px;margin:10px 0}
+.upi{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:9px;font-weight:800;font-size:13px;transition:all .15s}
+.upi.on{border-color:var(--am);background:rgba(245,158,11,.15);color:#fcd34d}
+.center{text-align:center}
+.spin{width:54px;height:54px;border-radius:50%;border:5px solid rgba(255,255,255,.12);border-top-color:var(--am);margin:18px auto;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.errcode{font-family:ui-monospace,Menlo,Consolas,monospace;background:rgba(248,113,113,.12);color:#fca5a5;border:1px solid rgba(248,113,113,.4);border-radius:10px;padding:6px 10px;display:inline-block;font-size:13px;margin:10px 0}
+
+/* CHAT */
+.chat-fab{position:fixed;left:16px;bottom:16px;z-index:70;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 18px;font-weight:800;font-size:14px;color:#fff;
+  background:linear-gradient(135deg,var(--in),#8b5cf6);box-shadow:0 12px 30px rgba(99,102,241,.5);transition:transform .15s}
+.chat-fab:hover{transform:scale(1.05)}
+.unread{background:var(--rd);color:#fff;border-radius:99px;min-width:20px;height:20px;display:grid;place-items:center;font-size:11px;padding:0 5px}
+.chat{position:fixed;left:16px;bottom:16px;z-index:80;width:360px;max-width:calc(100vw - 32px);height:min(540px,calc(100dvh - 32px));display:flex;flex-direction:column;
+  background:rgba(16,19,28,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--bd);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden;animation:pop .25s ease}
+.chat-h{display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--bd);background:rgba(99,102,241,.12)}
+.bot-av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:linear-gradient(135deg,var(--in),var(--am));flex:none}
+.chat-h .t{flex:1;min-width:0;line-height:1.2}
+.chat-h .t b{display:block;font-size:14px}
+.chat-h .t small{color:var(--gr);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gr);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.6)}70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+.mini{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:5px 9px;font-size:11px;font-weight:700}
+.msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.m{max-width:86%;padding:9px 12px;border-radius:16px;font-size:14px;word-break:break-word;white-space:pre-wrap}
+.m.bot{align-self:flex-start;background:rgba(255,255,255,.08);border-bottom-left-radius:4px}
+.m.user{align-self:flex-end;background:linear-gradient(135deg,var(--in),#8b5cf6);border-bottom-right-radius:4px}
+.m time{display:block;font-size:10px;color:var(--mut);margin-top:3px}
+.m.user time{color:rgba(255,255,255,.7)}
+.quote{background:rgba(0,0,0,.3);border-left:3px solid var(--am);border-radius:8px;padding:8px 10px;margin:8px 0;font-style:italic}
+.copy{background:var(--am);color:#1a1204;border:0;border-radius:10px;padding:6px 11px;font-weight:800;font-size:12px}
+.typing{align-self:flex-start;display:flex;gap:4px;align-items:center;background:rgba(255,255,255,.08);border-radius:16px;padding:10px 14px;font-size:12px;color:var(--mut)}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--mut);animation:bn 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bn{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.sugs{display:flex;gap:6px;overflow-x:auto;padding:8px 12px 0;scrollbar-width:none}
+.sugs::-webkit-scrollbar{display:none}
+.sugs button{flex:none;background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:700;white-space:nowrap}
+.sugs button:hover{border-color:var(--am)}
+.chat-f{display:flex;gap:8px;padding:10px 12px 12px}
+.chat-f input{flex:1;min-width:0}
+
+/* TOAST */
+.toasts{position:fixed;right:16px;bottom:16px;z-index:200;display:grid;gap:10px;width:min(340px,calc(100vw - 32px));pointer-events:none}
+.toast{pointer-events:auto;position:relative;overflow:hidden;display:flex;gap:10px;align-items:flex-start;background:#161a26;border:1px solid var(--bd);border-radius:14px;padding:12px 14px 15px;font-size:14px;font-weight:600;
+  box-shadow:0 14px 40px rgba(0,0,0,.5);cursor:pointer;animation:slin .35s cubic-bezier(.34,1.56,.64,1)}
+.toast.out{animation:slout .25s ease forwards}
+@keyframes slin{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+@keyframes slout{to{transform:translateX(120%);opacity:0}}
+.toast .bar2{position:absolute;left:0;bottom:0;height:3px;width:100%;transform-origin:left;animation:shrink linear forwards}
+@keyframes shrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.toast.success{border-color:rgba(52,211,153,.5)}.toast.success .bar2{background:var(--gr)}
+.toast.error{border-color:rgba(248,113,113,.5)}.toast.error .bar2{background:var(--rd)}
+.toast.warning{border-color:rgba(245,158,11,.5)}.toast.warning .bar2{background:var(--am)}
+.toast.info{border-color:rgba(96,165,250,.5)}.toast.info .bar2{background:var(--bl)}
+
+footer{max-width:1240px;margin:0 auto;padding:10px 16px 90px;text-align:center;color:var(--mut);font-size:12px;display:grid;gap:10px;justify-items:center}
+.reset{background:transparent;border:1px dashed var(--bd);border-radius:10px;padding:7px 14px;color:var(--mut);font-weight:700;font-size:12px}
+.reset.armed{border-color:var(--rd);color:#fca5a5;background:rgba(248,113,113,.1)}
+
+@media (max-width:1000px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static}
+}
+@media (max-width:820px){
+  .links{display:none}
+  .me{margin-left:auto}
+  .bottom{display:grid}
+  .wrap{padding-bottom:calc(var(--bottom-h) + 60px)}
+  footer{padding-bottom:calc(var(--bottom-h) + 70px)}
+  .chat-fab{bottom:calc(var(--bottom-h) + 12px + env(safe-area-inset-bottom))}
+  .toasts{bottom:calc(var(--bottom-h) + 70px + env(safe-area-inset-bottom))}
+}
+@media (max-width:640px){
+  .row{grid-template-columns:1fr}
+  .toolbar{grid-template-columns:1fr}
+  .summary{grid-template-columns:1fr}
+  .bar{grid-template-columns:110px 1fr 32px}
+  .me .nm{display:none}
+  .me{padding-right:8px}
+  .nav-in{gap:8px;padding:8px 12px}
+  .brand{font-size:17px}
+  .brand div{display:none}
+  .btn{padding:8px 11px}
+  .lbl{display:none}
+  .ico{display:inline}
+  .chat{left:8px;bottom:8px;width:calc(100vw - 16px);max-width:none;height:min(560px,calc(100dvh - 16px))}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="#residents"><i aria-hidden="true">🏠</i><div>Roomie <span>Ranker</span></div></a>
+    <nav class="links" id="topNav" aria-label="Main navigation">
+      <a href="#residents" data-view="residents">🏘️ Residents</a>
+      <a href="#wall" data-view="wall">🧱 Hostel Wall</a>
+      <a href="#board" data-view="board">📌 Notice Board</a>
+      <a href="#fame" data-view="fame">🏆 Hall of Fame</a>
+    </nav>
+    <div class="me" id="me" title="You are checked in as this student"></div>
+    <button class="btn pro btn-bounce" id="goPro" type="button">👑 <span class="lbl">Go Pro</span></button>
+    <button class="btn" id="switchBtn" type="button" aria-label="Switch student" title="Switch student"><span class="lbl">+ Switch Student</span><span class="ico">⇄</span></button>
+    <button class="btn ghost" id="logoutBtn" type="button" aria-label="Logout" title="Logout"><span class="lbl">Logout</span><span class="ico">⎋</span></button>
+  </div>
+</header>
+
+<nav class="bottom" id="bottomNav" aria-label="Main navigation">
+  <a href="#residents" data-view="residents"><b>🏘️</b>Residents</a>
+  <a href="#wall" data-view="wall"><b>🧱</b>Wall</a>
+  <a href="#board" data-view="board"><b>📌</b>Board</a>
+  <a href="#fame" data-view="fame"><b>🏆</b>Fame</a>
+</nav>
+
+<main class="wrap">
+  <div class="layout">
+    <div class="main">
+
+      <!-- VIEW: RESIDENTS -->
+      <section class="view" id="view-residents" aria-labelledby="h-res">
+        <div class="sec-h">
+          <div><h2 id="h-res">🏘️ Hostel Residents</h2><p>Everyone who checked in. Rate them. They'll never know (unless they pay).</p></div>
+        </div>
+        <div class="grid" id="resGrid"></div>
+      </section>
+
+      <!-- VIEW: WALL -->
+      <section class="view" id="view-wall" aria-labelledby="h-wall" hidden>
+        <div class="sec-h">
+          <div><h2 id="h-wall">🧱 The Hostel Wall</h2><p>File a complaint against a specific roomie.</p></div>
+        </div>
+
+        <form class="card composer" id="composer" autocomplete="off" novalidate>
+          <div class="row">
+            <label class="f">Target Resident<select id="cTarget"></select></label>
+            <label class="f">Crime Tag<select id="cTag"></select></label>
+          </div>
+          <label class="f">What happened?
+            <textarea id="cText" maxlength="280" placeholder="Bro stole my drying underwear from the balcony…"></textarea>
+          </label>
+          <div class="rowf">
+            <span class="count" id="cCount">0 / 280</span>
+            <span class="err" id="cErr" role="alert"></span>
+          </div>
+          <div class="rowf">
+            <div class="rate-pick"><span>Your rating</span><div class="star-row" id="cStars" data-kind="composer" data-mine="0"></div></div>
+            <label class="chk"><input type="checkbox" id="cAnon"> 🕵️ Post Anonymously</label>
+            <button class="btn primary btn-bounce" type="submit">📢 Post Complaint</button>
+          </div>
+        </form>
+
+        <div class="toolbar">
+          <input type="search" id="search" placeholder="🔍 Search name, room, crime or text…" aria-label="Search complaints">
+          <select id="sort" aria-label="Sort complaints">
+            <option value="new">🕒 Newest</option>
+            <option value="up">🔥 Most Upvoted</option>
+            <option value="low">💀 Lowest Rated</option>
+            <option value="high">😇 Highest Rated</option>
+          </select>
+        </div>
+        <div class="feed" id="feed"></div>
+      </section>
+
+      <!-- VIEW: NOTICE BOARD -->
+      <section class="view" id="view-board" aria-labelledby="h-board" hidden>
+        <div class="sec-h">
+          <div><h2 id="h-board">📌 Hostel Notice Board</h2><p>Review the hostel, or ask it for help. "Anyone have an iron box?" lives here.</p></div>
+        </div>
+
+        <div id="trendBox" hidden>
+          <h3 class="sub-h" style="margin-top:0">🔥 Trending Now</h3>
+          <div class="trend" id="trend"></div>
+        </div>
+
+        <h3 class="sub-h">✍️ New post</h3>
+        <form class="card composer" id="revForm" autocomplete="off" novalidate>
+          <div class="seg" id="rKind" role="tablist" aria-label="Post type">
+            <button type="button" class="on" data-kind="review" role="tab" aria-selected="true">⭐ Review the hostel</button>
+            <button type="button" data-kind="ask" role="tab" aria-selected="false">🙋 Ask the hostel</button>
+          </div>
+          <div class="row" id="rReviewRow">
+            <label class="f">Category<select id="rCat"></select></label>
+            <div class="rate-pick" style="align-self:end;padding-bottom:6px"><span>Hostel rating</span><div class="star-row" id="rStars" data-kind="review" data-mine="0"></div></div>
+          </div>
+          <div class="qchips" id="rQuick" hidden></div>
+          <label class="f"><span id="rLabel">Your review</span>
+            <textarea id="rText" maxlength="280" placeholder="Mess served 'paneer' that was clearly just yellow tofu in disguise…"></textarea>
+          </label>
+          <div class="rowf">
+            <span class="count" id="rCount">0 / 280</span>
+            <span class="err" id="rErr" role="alert"></span>
+          </div>
+          <div class="rowf">
+            <label class="chk"><input type="checkbox" id="rAnon"> 🕵️ Post Anonymously</label>
+            <button class="btn primary btn-bounce" type="submit" id="rSubmit">📌 Pin Review</button>
+          </div>
+        </form>
+
+        <div class="card summary" id="boardSummary"></div>
+
+        <div class="toolbar">
+          <div class="chips" id="revChips" style="margin:0"></div>
+          <select id="boardSort" aria-label="Sort notice board">
+            <option value="trend">🔥 Trending</option>
+            <option value="new">🕒 Newest</option>
+            <option value="agree">👍 Most Agreed</option>
+          </select>
+        </div>
+        <div class="feed" id="revFeed"></div>
+      </section>
+
+      <!-- VIEW: HALL OF FAME -->
+      <section class="view" id="view-fame" aria-labelledby="h-fame" hidden>
+        <div class="sec-h">
+          <div><h2 id="h-fame">🏆 Hall of Fame</h2><p>Standings, badges and the daily mess verdict. All computed live from real activity.</p></div>
+        </div>
+        <div class="card"><h3 style="margin-bottom:10px">📈 Roomie Standings</h3><div class="rank" id="standings"></div></div>
+        <h3 class="sub-h">🎖️ Badges</h3>
+        <div class="badges" id="badges"></div>
+        <h3 class="sub-h">🍛 Daily Mess Poll</h3>
+        <div class="card" id="poll"></div>
+      </section>
+    </div>
+
+    <aside class="side" aria-label="Leaderboard and stats">
+      <div class="card">
+        <h3>🏆 Live Leaderboard</h3>
+        <div id="leaders"></div>
+      </div>
+      <div class="card">
+        <h3>📊 Hostel Stats</h3>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="card lock" id="whoCard"></div>
+      <div class="card promo">
+        <h3>👑 Roomie Ranker PRO</h3>
+        <p>The Hostel Mafia Pass. Unmask who rated you, shield your own identity, and watch the laundry line with AI.</p>
+        <button class="btn pro btn-bounce" type="button" id="promoBtn" style="width:100%">See Pro perks · ₹150</button>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <div>Roomie Ranker · A Web Technology micro-project · All data stays in your browser.</div>
+  <button class="reset" id="resetBtn" type="button">🗑️ Reset Browser Data</button>
+</footer>
+
+<!-- PRO MODAL -->
+<div class="ov" id="proOv" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="proTitle">
+    <button class="x" id="proX" type="button" aria-label="Close">✕</button>
+
+    <div id="vPitch">
+      <h2 id="proTitle">👑 Roomie Ranker PRO</h2>
+      <p class="muted">Hostel Mafia Pass</p>
+      <div class="price">₹150 <small>/ Semester</small></div>
+      <ul class="perks">
+        <li><b>🔓 Unmask Snitches</b> – see exactly who rated and reviewed you.</li>
+        <li><b>🥸 Undercover Shield</b> – your anonymous posts stay anonymous even from other Pro users.</li>
+        <li><b>📹 Laundry CCTV AI</b> – our AI stares at the balcony so you don't have to.</li>
+      </ul>
+      <div class="upis" id="upis">
+        <button type="button" class="upi on" data-app="GPay">GPay</button>
+        <button type="button" class="upi" data-app="PhonePe">PhonePe</button>
+        <button type="button" class="upi" data-app="Paytm">Paytm</button>
+      </div>
+      <label class="f">UPI ID<input type="text" id="upiId" placeholder="yourname@okhdfcbank" autocomplete="off" inputmode="email"></label>
+      <div class="err" id="upiErr" role="alert" style="margin-bottom:8px"></div>
+      <button class="btn pro btn-bounce" id="payBtn" type="button" style="width:100%;padding:13px;font-size:15px">Pay ₹150 with UPI</button>
+    </div>
+
+    <div id="vBusy" class="center" hidden>
+      <div class="spin" aria-hidden="true"></div>
+      <h2 id="busyTxt" aria-live="polite">Connecting to NPCI UPI Switch...</h2>
+      <p class="muted">Please don't close this window. Your mess-rebate is watching.</p>
+    </div>
+
+    <div id="vFail" class="center" hidden>
+      <div style="font-size:54px" aria-hidden="true">💸</div>
+      <h2>Payment Declined</h2>
+      <div class="errcode">ERR_BROKE_ENGINEER</div>
+      <p class="muted">₹150 exceeds your mess-rebate net worth. Anonymous snitches stay protected. Try again after your internship stipend.</p>
+      <button class="btn primary btn-bounce" id="failClose" type="button" style="margin-top:14px">Fine, I'll stay curious</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHATBOT -->
+<button class="chat-fab" id="chatFab" type="button" aria-label="Open WardenBot AI chat">🤖 Ask WardenBot AI <span class="unread" id="unread" hidden>0</span></button>
+<section class="chat" id="chat" role="dialog" aria-label="WardenBot AI chat" hidden>
+  <div class="chat-h">
+    <div class="bot-av" aria-hidden="true">🤖</div>
+    <div class="t"><b>WardenBot AI — Hostel Chaos Assistant</b><small><span class="dot"></span>Online · no API key needed</small></div>
+    <button class="mini" id="clearChat" type="button">Clear Chat</button>
+    <button class="mini" id="closeChat" type="button" aria-label="Close chat">✕</button>
+  </div>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
+  <div class="sugs" id="sugs">
+    <button type="button" data-q="Who is Most Suspect?">🚨 Who is Most Suspect?</button>
+    <button type="button" data-q="Who is Top Rated?">🏆 Who is Top Rated?</button>
+    <button type="button" data-q="Write a savage roast">✍️ Write a savage roast</button>
+    <button type="button" data-q="Underwear theft advice">🩲 Underwear theft advice</button>
+    <button type="button" data-q="What is trending?">🔥 What is trending?</button>
+  </div>
+  <form class="chat-f" id="chatForm" autocomplete="off">
+    <input type="text" id="chatIn" placeholder="Ask WardenBot or type a roomie's name…" maxlength="200" aria-label="Message WardenBot">
+    <button class="btn primary" type="submit">Send</button>
+  </form>
+</section>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= STORAGE ================= */
+var K = {
+  user:'rr_current_user', res:'rr_residents', rat:'rr_resident_ratings',
+  com:'rr_complaints', chat:'rr_chat_history', rev:'rr_hostel_reviews', poll:'rr_mess_poll'
+};
+function read(key, fb){
+  try{ var v = localStorage.getItem(key); return v ? JSON.parse(v) : fb; }catch(e){ return fb; }
+}
+function write(key, val){
+  try{ localStorage.setItem(key, JSON.stringify(val)); return true; }
+  catch(e){ toast('Browser storage is blocked or full. Changes may not be saved.', 'error'); return false; }
+}
+function arr(key){ var v = read(key, []); return Array.isArray(v) ? v : []; }
+function obj(key){ var v = read(key, {}); return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {}; }
+
+/* ================= HELPERS ================= */
+function escapeHTML(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function lower(s){ return String(s == null ? '' : s).trim().toLowerCase(); }
+function uid(p){ return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function $(id){ return document.getElementById(id); }
+function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function avatarUrl(name){
+  return 'https://api.dicebear.com/10.x/notionists/svg?seed=' + encodeURIComponent((name || '').trim() || 'Roomie') +
+    '&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf';
+}
+function fallbackSvg(name){
+  var ch = ((name || '?').trim().charAt(0) || '?').toUpperCase();
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#312e81"/>' +
+    '<text x="50" y="50" dy=".35em" text-anchor="middle" font-family="sans-serif" font-size="48" font-weight="700" fill="#fbbf24">' +
+    escapeHTML(ch) + '</text></svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+window.avFallback = function(img){ img.onerror = null; img.src = fallbackSvg(img.getAttribute('data-name') || '?'); };
+function av(name, size){
+  size = size || 40;
+  return '<img src="' + escapeHTML(avatarUrl(name)) + '" data-name="' + escapeHTML(name) + '" alt="" width="' + size + '" height="' + size + '" loading="lazy" onerror="avFallback(this)">';
+}
+function ago(ts){
+  var s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  if(s < 60) return 'Just now';
+  var m = Math.floor(s / 60); if(m < 60) return m + 'm ago';
+  var h = Math.floor(m / 60); if(h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  var d = Math.floor(h / 24); return d + (d === 1 ? ' day ago' : ' days ago');
+}
+function hhmm(iso){
+  var d = new Date(iso); if(isNaN(d)) return '';
+  return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+}
+function bounce(el){ if(!el) return; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+function dkey(d){
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+var TAGS = [
+  '🩲 Stole My Underwear','🍜 Midnight Maggi Thief','🔌 Charger Kidnapper','🎧 3 AM Valorant Screamer',
+  '🚽 Biohazard / Never Flushes','❄️ 16°C AC Psychopath','🕊️ Actually a Good Roomie'
+];
+var GOOD_TAG = TAGS[6];
+var CATS = ['🍛 Mess Food','🚿 Water & Bathrooms','📶 WiFi','🧹 Cleanliness','🔊 Noise','🛡️ Warden & Rules','🛏️ Rooms & Furniture','🎉 General Vibes'];
+var ASK_CAT = '🙋 Need Something';
+var QUICK_ASKS = ['Does anyone have an iron box? 🧺','Anyone have a spare charger? 🔌','Need a notebook for tomorrow 📓','Is anyone going to town today? 🛵','Anyone up for skipping the mess tonight? 🍜'];
+var ALIASES = ['Laundry Victim #404','Midnight Maggi Witness','Charger Orphan #12','Corridor Informant #007','Balcony CCTV Uncle',
+  'Mess Hall Whistleblower','Sleepless Floor Neighbour','Anonymous Towel Survivor','Wing Gossip Agent #69'];
+var VIEWS = ['residents', 'wall', 'board', 'fame'];
+
+/* ================= TOASTS ================= */
+function toast(msg, type, ms){
+  type = type || 'info'; ms = ms || 3800;
+  var box = $('toasts');
+  while(box.children.length >= 4) box.removeChild(box.firstChild);
+  var icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.setAttribute('role', 'status');
+  t.innerHTML = '<span aria-hidden="true">' + icons[type] + '</span><span>' + escapeHTML(msg) + '</span><i class="bar2" style="animation-duration:' + ms + 'ms"></i>';
+  var gone = false;
+  function kill(){
+    if(gone) return; gone = true;
+    t.classList.add('out');
+    setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 260);
+  }
+  t.addEventListener('click', kill);
+  box.appendChild(t);
+  setTimeout(kill, ms);
+}
+
+/* ================= SESSION ================= */
+var me = read(K.user, null);
+if(!me || !me.name){ window.location.replace('index.html'); return; }
+var meL = lower(me.name);
+(function ensureResident(){
+  var rs = arr(K.res), found = false;
+  for(var i = 0; i < rs.length; i++){ if(lower(rs[i].name) === meL){ found = true; break; } }
+  if(!found){ rs.push({ name: me.name, block: me.block, room: me.room, joinedAt: me.joinedAt || Date.now() }); write(K.res, rs); }
+})();
+
+/* ================= STATE ================= */
+var sortMode = 'new', query = '', revCat = 'all', boardSort = 'trend', composeKind = 'review';
+var openReplies = {}, drafts = {}, openBoard = {}, bdrafts = {};
+var currentView = null;
+
+/* ================= NAVIGATION ================= */
+function viewFromHash(){
+  var h = (location.hash || '').replace('#', '');
+  return VIEWS.indexOf(h) > -1 ? h : 'residents';
+}
+function showView(v, keepScroll){
+  if(VIEWS.indexOf(v) === -1) v = 'residents';
+  if(v === currentView) return;
+  currentView = v;
+  VIEWS.forEach(function(n){ $('view-' + n).hidden = n !== v; });
+  var links = document.querySelectorAll('[data-view]');
+  for(var i = 0; i < links.length; i++){
+    var on = links[i].getAttribute('data-view') === v;
+    links[i].classList.toggle('on', on);
+    if(on) links[i].setAttribute('aria-current', 'page'); else links[i].removeAttribute('aria-current');
+  }
+  if(!keepScroll) window.scrollTo(0, 0);
+}
+function goto(v){
+  showView(v, true);
+  if(viewFromHash() !== v){ try{ history.pushState(null, '', '#' + v); }catch(e){ location.hash = v; } }
+}
+window.addEventListener('hashchange', function(){ showView(viewFromHash()); });
+window.addEventListener('popstate', function(){ showView(viewFromHash()); });
+document.addEventListener('click', function(e){
+  var a = e.target.closest('a[data-view], a.brand');
+  if(!a) return;
+  e.preventDefault();
+  var v = a.getAttribute('data-view') || 'residents';
+  if(v === currentView){ window.scrollTo({ top:0, behavior:'smooth' }); return; }
+  goto(v); window.scrollTo(0, 0);
+});
+
+/* ================= DATA / STATS ================= */
+function allStats(){
+  var m = {};
+  function add(k, v){ if(!m[k]) m[k] = { sum:0, count:0 }; m[k].sum += v; m[k].count++; }
+  var rat = obj(K.rat);
+  Object.keys(rat).forEach(function(t){
+    var o = rat[t] || {};
+    Object.keys(o).forEach(function(r){ var v = +o[r]; if(v >= 1 && v <= 5) add(t, v); });
+  });
+  arr(K.com).forEach(function(c){ var v = +c.rating; if(v >= 1 && v <= 5) add(lower(c.targetName), v); });
+  Object.keys(m).forEach(function(k){ m[k].avg = m[k].sum / m[k].count; });
+  return m;
+}
+function leaders(){
+  var st = allStats();
+  var list = arr(K.res).map(function(r){ var s = st[lower(r.name)]; return { r:r, avg: s ? s.avg : 0, count: s ? s.count : 0 }; })
+    .filter(function(x){ return x.count > 0; });
+  if(!list.length) return { top:null, suspect:null };
+  list.sort(function(a, b){ return b.avg - a.avg || b.count - a.count; });
+  var top = list[0];
+  var rest = list.slice(1);
+  var suspect = null;
+  if(rest.length){
+    rest.sort(function(a, b){ return a.avg - b.avg || b.count - a.count; });
+    suspect = rest[0];
+  }
+  return { top:top, suspect:suspect };
+}
+function crimesFor(nl){
+  var counts = {}, n = 0;
+  arr(K.com).forEach(function(c){
+    if(lower(c.targetName) === nl && c.tag !== GOOD_TAG){ n++; counts[c.tag] = (counts[c.tag] || 0) + 1; }
+  });
+  var topTag = null, best = 0;
+  Object.keys(counts).forEach(function(t){ if(counts[t] > best){ best = counts[t]; topTag = t; } });
+  return { n:n, topTag:topTag };
+}
+function badgeFor(s){
+  if(!s || !s.count) return '<span class="badge b-un">🐣 Unrated</span>';
+  if(s.avg >= 4) return '<span class="badge b-saint">😇 Hostel Saint</span>';
+  if(s.avg >= 2.5) return '<span class="badge b-chaos">⚠️ Mildly Chaos</span>';
+  return '<span class="badge b-menace">🚨 Certified Menace</span>';
+}
+function starsHTML(mine, disabled){
+  var h = '';
+  for(var i = 1; i <= 5; i++){
+    h += '<button type="button" class="star' + (i <= mine ? ' on' : '') + '" data-v="' + i + '" aria-label="Rate ' + i + ' star' + (i > 1 ? 's' : '') + '"' + (disabled ? ' disabled' : '') + '>★</button>';
+  }
+  return h;
+}
+function paint(row, n){
+  var bs = row.querySelectorAll('.star');
+  for(var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', +bs[i].getAttribute('data-v') <= n);
+}
+
+/* ----- badges (computed live, never stored; anonymous posts never count so nobody gets unmasked) ----- */
+function computeBadges(){
+  var res = arr(K.res), com = arr(K.com), revs = arr(K.rev);
+  function nameOf(nl){ for(var i = 0; i < res.length; i++){ if(lower(res[i].name) === nl) return res[i].name; } return nl; }
+  function best(map){ var k = null, n = 0; Object.keys(map).forEach(function(x){ if(map[x] > n){ n = map[x]; k = x; } }); return k ? { nl:k, n:n } : null; }
+  function tagCount(tag){
+    var m = {}; com.forEach(function(c){ if(c.tag === tag){ var t = lower(c.targetName); m[t] = (m[t] || 0) + 1; } });
+    return best(m);
+  }
+  var snitch = {}, fav = {}, hero = {}, first = null;
+  com.forEach(function(c){
+    if(c.isAnonymous) return;
+    var a = lower(c.authorName);
+    snitch[a] = (snitch[a] || 0) + 1;
+    fav[a] = (fav[a] || 0) + (c.upvotedBy || []).length;
+    if(!first || c.createdAt < first.createdAt) first = c;
+  });
+  revs.forEach(function(r){
+    (r.replies || []).forEach(function(p){ if(p.best){ var a = lower(p.authorName); hero[a] = (hero[a] || 0) + 1; } });
+  });
+  var defs = [
+    { icon:'🍜', label:'Maggi Bandit', desc:'Most Maggi-theft complaints against them', w:tagCount(TAGS[1]) },
+    { icon:'🩲', label:'Laundry Menace', desc:'Most underwear-theft complaints against them', w:tagCount(TAGS[0]) },
+    { icon:'🎧', label:'Night Owl', desc:'Most 3 AM Valorant complaints', w:tagCount(TAGS[3]) },
+    { icon:'❄️', label:'Thermostat Tyrant', desc:'Most 16°C AC complaints', w:tagCount(TAGS[5]) },
+    { icon:'🗣️', label:'Snitch-in-Chief', desc:'Filed the most complaints (non-anonymous only)', w:best(snitch) },
+    { icon:'🔥', label:'Crowd Favourite', desc:'Most upvotes on their (non-anonymous) complaints', w:best(fav) },
+    { icon:'🦸', label:'Helpful Hero', desc:'Most "best answers" on the Notice Board', w:best(hero) },
+    { icon:'🩸', label:'First Blood', desc:'Filed the very first complaint (non-anonymous)', w: first ? { nl:lower(first.authorName), n:1 } : null }
+  ];
+  var byUser = {};
+  defs.forEach(function(d){
+    if(d.w){ d.holder = nameOf(d.w.nl); (byUser[d.w.nl] = byUser[d.w.nl] || []).push(d); }
+  });
+  return { defs:defs, byUser:byUser };
+}
+
+/* ----- trending ----- */
+function trendScore(r){
+  var eng = (r.upvotedBy || []).length + 2 * (r.replies || []).length;
+  var hrs = Math.max(0, (Date.now() - r.createdAt) / 36e5);
+  return eng / Math.pow(hrs + 2, 1.2);
+}
+function trendList(){
+  var now = Date.now();
+  return arr(K.rev).filter(function(r){
+    return ((r.upvotedBy || []).length + (r.replies || []).length) > 0 && (now - r.createdAt) < 7 * 864e5;
+  }).sort(function(a, b){ return trendScore(b) - trendScore(a); }).slice(0, 3);
+}
+
+/* ================= RENDER: NAV ================= */
+function renderNav(){
+  $('me').innerHTML = av(me.name, 30) + '<span class="nm">' + escapeHTML(me.name) + '</span><span class="room-b">' + escapeHTML(me.room) + '</span>';
+}
+
+/* ================= RENDER: RESIDENTS ================= */
+function renderResidents(){
+  var rs = arr(K.res), st = allStats(), rat = obj(K.rat), B = computeBadges();
+  var grid = $('resGrid');
+  if(!rs.length){ grid.innerHTML = '<div class="empty"><b>No residents yet</b>Ask your roomies to check in.</div>'; return; }
+  grid.innerHTML = rs.map(function(r){
+    var nl = lower(r.name), s = st[nl], isMe = nl === meL;
+    var mine = (rat[nl] && +rat[nl][meL]) || 0;
+    var chips = (B.byUser[nl] || []).slice(0, 3).map(function(d){
+      return '<span class="bchip" title="' + escapeHTML(d.desc) + '">' + d.icon + ' ' + escapeHTML(d.label) + '</span>';
+    }).join('');
+    return '<article class="card hov" data-nl="' + escapeHTML(nl) + '">' +
+      '<div class="res-top">' + av(r.name, 56) + '<div><div class="res-name">' + escapeHTML(r.name) + (isMe ? ' <span class="you">YOU</span>' : '') + '</div>' +
+      '<div class="res-meta">' + escapeHTML(r.block) + ' · Room ' + escapeHTML(r.room) + '</div></div></div>' +
+      (chips ? '<div class="bchips">' + chips + '</div>' : '') +
+      '<div class="res-score"><div class="avg">' + (s ? s.avg.toFixed(1) : '—') + ' ★<small>' + (s ? s.count + (s.count === 1 ? ' rating' : ' ratings') : 'no ratings') + '</small></div>' + badgeFor(s) + '</div>' +
+      '<div class="res-foot"><div class="star-row" data-kind="resident" data-target="' + escapeHTML(r.name) + '" data-mine="' + mine + '"' +
+      (isMe ? ' title="You cannot rate yourself. Nice try."' : '') + '>' + starsHTML(mine, isMe) + '</div>' +
+      '<button type="button" class="small-btn btn-bounce complain" data-target="' + escapeHTML(r.name) + '"' + (isMe ? ' disabled style="opacity:.4;cursor:not-allowed"' : '') + '>📢 Complain</button></div>' +
+      '</article>';
+  }).join('');
+}
+
+function rateResident(name, v){
+  var nl = lower(name);
+  if(nl === meL){ toast('Self-rating is illegal in this hostel. 🚫', 'warning'); return; }
+  var rat = obj(K.rat);
+  if(!rat[nl] || typeof rat[nl] !== 'object') rat[nl] = {};
+  var had = !!rat[nl][meL];
+  rat[nl][meL] = v;
+  if(!write(K.rat, rat)) return;
+  renderResidents(); renderSide(); renderFame();
+  toast((had ? 'Updated' : 'Saved') + ': ' + v + '★ for ' + name + '. Silent but deadly.', 'success');
+}
+
+/* ================= COMPOSER (WALL) ================= */
+function renderTargets(){
+  var sel = $('cTarget'), prev = sel.value;
+  var others = arr(K.res).filter(function(r){ return lower(r.name) !== meL; });
+  if(!others.length){
+    sel.innerHTML = '<option value="">No other residents yet…</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  sel.innerHTML = '<option value="">Select a resident…</option>' + others.map(function(r){
+    return '<option value="' + escapeHTML(lower(r.name)) + '">' + escapeHTML(r.name) + ' (' + escapeHTML(r.room) + ')</option>';
+  }).join('');
+  if(prev) sel.value = prev;
+}
+function initStatic(){
+  $('cTag').innerHTML = TAGS.map(function(t){ return '<option>' + escapeHTML(t) + '</option>'; }).join('');
+  $('rCat').innerHTML = CATS.map(function(t){ return '<option>' + escapeHTML(t) + '</option>'; }).join('');
+  $('cStars').innerHTML = starsHTML(0, false);
+  $('rStars').innerHTML = starsHTML(0, false);
+  $('rQuick').innerHTML = QUICK_ASKS.map(function(q){ return '<button type="button" data-q="' + escapeHTML(q) + '">' + escapeHTML(q) + '</button>'; }).join('');
+}
+function bindCounter(ta, out){
+  function upd(){
+    var n = ta.value.length;
+    out.textContent = n + ' / 280';
+    out.className = 'count' + (n >= 280 ? ' max' : n >= 240 ? ' warn' : '');
+  }
+  ta.addEventListener('input', upd); upd();
+  return upd;
+}
+var updCCount = bindCounter($('cText'), $('cCount'));
+var updRCount = bindCounter($('rText'), $('rCount'));
+
+$('composer').addEventListener('submit', function(e){
+  e.preventDefault();
+  var err = $('cErr'); err.textContent = '';
+  var tl = $('cTarget').value, text = $('cText').value.trim(), rating = +$('cStars').getAttribute('data-mine');
+  var target = null;
+  arr(K.res).forEach(function(r){ if(lower(r.name) === tl) target = r; });
+  if(!target){ err.textContent = 'Pick a resident to complain about.'; return; }
+  if(text.length < 5){ err.textContent = 'Write at least 5 characters of drama.'; return; }
+  if(!rating){ err.textContent = 'Give a star rating (1–5).'; return; }
+  var anon = $('cAnon').checked;
+  var list = arr(K.com);
+  list.unshift({
+    id: uid('c_'), targetName: target.name, targetRoom: target.room, rating: rating, tag: $('cTag').value, text: text,
+    authorName: me.name, authorDisplay: anon ? pick(ALIASES) : me.name, isAnonymous: anon,
+    createdAt: Date.now(), upvotedBy: [], replies: []
+  });
+  if(!write(K.com, list)) return;
+  $('cText').value = ''; updCCount();
+  $('cStars').setAttribute('data-mine', '0'); paint($('cStars'), 0);
+  $('cAnon').checked = false;
+  renderFeed(); renderSide(); renderResidents(); renderFame();
+  toast(anon ? 'Complaint posted anonymously. 🕵️' : 'Complaint posted on the Hostel Wall! 📢', 'success');
+});
+
+/* ================= RENDER: WALL FEED ================= */
+function renderFeed(){
+  var feed = $('feed');
+  var list = arr(K.com);
+  if(!list.length){
+    feed.innerHTML = '<div class="empty"><b>The wall is clean… suspiciously clean.</b>Be the first to file a complaint.</div>';
+    return;
+  }
+  var q = lower(query);
+  if(q){
+    list = list.filter(function(c){
+      return (lower(c.targetName) + ' ' + lower(c.targetRoom) + ' ' + lower(c.tag) + ' ' + lower(c.text)).indexOf(q) !== -1;
+    });
+  }
+  list = list.slice().sort(function(a, b){
+    if(sortMode === 'up') return (b.upvotedBy || []).length - (a.upvotedBy || []).length || b.createdAt - a.createdAt;
+    if(sortMode === 'low') return a.rating - b.rating || b.createdAt - a.createdAt;
+    if(sortMode === 'high') return b.rating - a.rating || b.createdAt - a.createdAt;
+    return b.createdAt - a.createdAt;
+  });
+  if(!list.length){ feed.innerHTML = '<div class="empty"><b>No matches</b>Nothing on the wall fits that search.</div>'; return; }
+
+  feed.innerHTML = list.map(function(c){
+    var ups = c.upvotedBy || [], reps = c.replies || [];
+    var upped = ups.indexOf(meL) !== -1;
+    var mine = lower(c.authorName) === meL;
+    var open = !!openReplies[c.id];
+    var drawer = '';
+    if(open){
+      drawer = '<div class="drawer">' +
+        (reps.length ? reps.map(function(r){
+          return '<div class="reply"><b>' + escapeHTML(r.authorDisplay) + '</b><small data-ts="' + r.createdAt + '">' + escapeHTML(ago(r.createdAt)) + '</small><div>' + escapeHTML(r.text) + '</div></div>';
+        }).join('') : '<div class="muted">No witnesses yet. Be the first to testify.</div>') +
+        '<div class="reply-form"><input type="text" class="reply-in" data-id="' + escapeHTML(c.id) + '" maxlength="200" placeholder="Add your witness statement…" value="' + escapeHTML(drafts[c.id] || '') + '">' +
+        '<button type="button" class="btn primary btn-bounce" data-act="send" data-id="' + escapeHTML(c.id) + '">Reply</button></div></div>';
+    }
+    return '<article class="card hov" data-id="' + escapeHTML(c.id) + '">' +
+      '<div class="post-head">' + av(c.targetName, 46) +
+      '<div class="post-who"><div class="l">@' + escapeHTML(c.targetName) + ' <span class="room-b">' + escapeHTML(c.targetRoom) + '</span></div>' +
+      '<div class="s">Reported by ' + (c.isAnonymous ? '🕵️ ' : '') + '<b>' + escapeHTML(c.authorDisplay) + '</b> · <span data-ts="' + c.createdAt + '">' + escapeHTML(ago(c.createdAt)) + '</span></div></div>' +
+      '<span class="rate-badge">★ ' + escapeHTML(c.rating) + '</span></div>' +
+      '<span class="tag-pill' + (c.tag === GOOD_TAG ? ' good' : '') + '">' + escapeHTML(c.tag) + '</span>' +
+      '<p class="post-text">' + escapeHTML(c.text) + '</p>' +
+      '<div class="acts">' +
+      '<button type="button" class="act btn-bounce' + (upped ? ' on' : '') + '" data-act="up" data-id="' + escapeHTML(c.id) + '" aria-pressed="' + upped + '">🔥 Upvote (' + ups.length + ')</button>' +
+      '<button type="button" class="act' + (open ? ' on' : '') + '" data-act="reply" data-id="' + escapeHTML(c.id) + '" aria-expanded="' + open + '">💬 Replies (' + reps.length + ')</button>' +
+      '<button type="button" class="act" data-act="share" data-id="' + escapeHTML(c.id) + '" title="Download as an image">🖼️ Share</button>' +
+      (mine ? '<button type="button" class="act del" data-act="del" data-id="' + escapeHTML(c.id) + '">🗑️ Delete</button>' : '') +
+      '</div>' + drawer + '</article>';
+  }).join('');
+}
+
+function armDelete(btn, onConfirm){
+  if(btn.getAttribute('data-armed') === '1'){ onConfirm(); return; }
+  btn.setAttribute('data-armed', '1'); btn.classList.add('armed'); btn.textContent = '⚠️ Click again to delete';
+  setTimeout(function(){
+    if(btn.isConnected && btn.getAttribute('data-armed') === '1'){
+      btn.setAttribute('data-armed', '0'); btn.classList.remove('armed'); btn.textContent = '🗑️ Delete';
+    }
+  }, 3000);
+}
+
+function postReply(id){
+  var input = document.querySelector('#feed .reply-in[data-id="' + id + '"]');
+  if(!input) return;
+  var text = input.value.trim();
+  if(!text){ toast('Write something before testifying.', 'warning'); return; }
+  var list = arr(K.com);
+  for(var i = 0; i < list.length; i++){
+    if(list[i].id === id){
+      if(!Array.isArray(list[i].replies)) list[i].replies = [];
+      list[i].replies.push({ id: uid('r_'), authorDisplay: me.name, text: text, createdAt: Date.now() });
+      break;
+    }
+  }
+  if(!write(K.com, list)) return;
+  delete drafts[id];
+  renderFeed();
+  toast('Witness statement recorded. 📝', 'success');
+}
+
+/* ----- share card (PNG) ----- */
+function wrapLines(g, text, maxW, maxLines){
+  var words = String(text).replace(/\s+/g, ' ').split(' '), lines = [], cur = '';
+  function pushWord(w){
+    while(g.measureText(w).width > maxW){
+      var cut = w.length;
+      while(cut > 1 && g.measureText(w.slice(0, cut)).width > maxW) cut--;
+      if(cur){ lines.push(cur); cur = ''; }
+      lines.push(w.slice(0, cut)); w = w.slice(cut);
+    }
+    var test = cur ? cur + ' ' + w : w;
+    if(g.measureText(test).width > maxW && cur){ lines.push(cur); cur = w; } else cur = test;
+  }
+  words.forEach(pushWord);
+  if(cur) lines.push(cur);
+  if(lines.length > maxLines){
+    lines = lines.slice(0, maxLines);
+    var last = lines[maxLines - 1];
+    while(last.length > 1 && g.measureText(last + '…').width > maxW) last = last.slice(0, -1);
+    lines[maxLines - 1] = last + '…';
+  }
+  return lines;
+}
+function exportCard(c){
+  try{
+    var W = 1080, H = 1080, cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var g = cv.getContext('2d'), F = '"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
+    var bg = g.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#0b0d16'); bg.addColorStop(.55, '#1a1b4b'); bg.addColorStop(1, '#3b1d0a');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.06)'; g.beginPath();
+    if(g.roundRect) g.roundRect(70, 70, W - 140, H - 140, 48); else g.rect(70, 70, W - 140, H - 140);
+    g.fill();
+    g.textBaseline = 'alphabetic';
+    g.fillStyle = '#f59e0b'; g.font = '800 34px ' + F; g.fillText('🏠 ROOMIE RANKER · THE HOSTEL WALL', 120, 160);
+    g.fillStyle = '#ffffff'; g.font = '800 72px ' + F;
+    var title = '@' + c.targetName;
+    while(g.measureText(title).width > W - 240 && title.length > 4) title = title.slice(0, -2);
+    g.fillText(title, 120, 270);
+    g.fillStyle = '#a5b4fc'; g.font = '700 34px ' + F; g.fillText('Room ' + c.targetRoom, 120, 322);
+    g.fillStyle = '#fcd34d'; g.font = '800 40px ' + F; g.fillText(c.tag, 120, 410);
+    g.fillStyle = '#f1f5f9'; g.font = '600 46px ' + F;
+    var lines = wrapLines(g, '“' + c.text + '”', W - 240, 9);
+    lines.forEach(function(l, i){ g.fillText(l, 120, 500 + i * 64); });
+    var stars = '';
+    for(var i = 1; i <= 5; i++) stars += i <= c.rating ? '★' : '☆';
+    g.fillStyle = '#f59e0b'; g.font = '800 64px ' + F; g.fillText(stars, 120, H - 190);
+    g.fillStyle = '#94a3b8'; g.font = '600 30px ' + F;
+    g.fillText('Reported by ' + (c.isAnonymous ? '🕵️ ' : '') + c.authorDisplay + ' · ' + (c.upvotedBy || []).length + ' 🔥', 120, H - 120);
+    cv.toBlob(function(b){
+      if(!b){ toast('Could not create the image in this browser.', 'error'); return; }
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = 'roomie-ranker-' + (c.targetName || 'complaint').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
+      toast('Roast card downloaded. Post it on the hostel WhatsApp group! 🖼️', 'success');
+    }, 'image/png');
+  }catch(err){ toast('Could not create the image in this browser.', 'error'); }
+}
+
+$('feed').addEventListener('click', function(e){
+  var b = e.target.closest('[data-act]'); if(!b) return;
+  var id = b.getAttribute('data-id'), act = b.getAttribute('data-act');
+  var list = arr(K.com);
+  var c = null; list.forEach(function(x){ if(x.id === id) c = x; });
+  if(!c) return;
+  if(act === 'up'){
+    if(!Array.isArray(c.upvotedBy)) c.upvotedBy = [];
+    var i = c.upvotedBy.indexOf(meL);
+    if(i === -1){ c.upvotedBy.push(meL); toast('Upvoted! 🔥', 'info', 2200); } else { c.upvotedBy.splice(i, 1); toast('Upvote removed.', 'info', 2200); }
+    write(K.com, list); renderFeed(); renderSide(); renderFame();
+  } else if(act === 'reply'){
+    openReplies[id] = !openReplies[id];
+    renderFeed();
+    if(openReplies[id]){ var inp = document.querySelector('#feed .reply-in[data-id="' + id + '"]'); if(inp) inp.focus(); }
+  } else if(act === 'send'){
+    postReply(id);
+  } else if(act === 'share'){
+    exportCard(c);
+  } else if(act === 'del'){
+    if(lower(c.authorName) !== meL){ toast('You can only delete your own complaints.', 'error'); return; }
+    armDelete(b, function(){
+      write(K.com, list.filter(function(x){ return x.id !== id; }));
+      delete openReplies[id]; delete drafts[id];
+      renderFeed(); renderSide(); renderResidents(); renderFame();
+      toast('Complaint deleted.', 'info');
+    });
+  }
+});
+$('feed').addEventListener('input', function(e){
+  if(e.target.classList.contains('reply-in')) drafts[e.target.getAttribute('data-id')] = e.target.value;
+});
+$('feed').addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && e.target.classList.contains('reply-in')){ e.preventDefault(); postReply(e.target.getAttribute('data-id')); }
+});
+$('search').addEventListener('input', function(){ query = this.value; renderFeed(); });
+$('sort').addEventListener('change', function(){ sortMode = this.value; renderFeed(); });
+
+/* ================= NOTICE BOARD ================= */
+function setKind(k){
+  composeKind = k;
+  var bs = $('rKind').querySelectorAll('button');
+  for(var i = 0; i < bs.length; i++){
+    var on = bs[i].getAttribute('data-kind') === k;
+    bs[i].classList.toggle('on', on); bs[i].setAttribute('aria-selected', String(on));
+  }
+  var ask = k === 'ask';
+  $('rReviewRow').hidden = ask;
+  $('rQuick').hidden = !ask;
+  $('rLabel').textContent = ask ? 'What do you need?' : 'Your review';
+  $('rText').placeholder = ask ? 'Does anyone have an iron box? Need it for 10 minutes before the viva…' : 'Mess served \'paneer\' that was clearly just yellow tofu in disguise…';
+  $('rSubmit').textContent = ask ? '🙋 Post Ask' : '📌 Pin Review';
+  $('rErr').textContent = '';
+}
+$('rKind').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-kind]'); if(b) setKind(b.getAttribute('data-kind'));
+});
+$('rQuick').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-q]'); if(!b) return;
+  $('rText').value = b.getAttribute('data-q'); updRCount(); $('rText').focus();
+});
+
+function reviewsOnly(){ return arr(K.rev).filter(function(r){ return r.kind !== 'ask'; }); }
+
+function renderBoard(){
+  var all = arr(K.rev);
+  var revs = reviewsOnly();
+  var openAsks = all.filter(function(r){ return r.kind === 'ask' && !r.solved; }).length;
+  var sum = $('boardSummary');
+  if(!revs.length){
+    sum.style.display = 'block';
+    sum.innerHTML = '<div class="empty" style="border:0;padding:6px"><b>No hostel reviews yet</b>Rate the mess, the WiFi, the warden. The hostel is listening (the warden is not).' +
+      (openAsks ? '<br>🙋 ' + openAsks + ' open ' + (openAsks === 1 ? 'ask' : 'asks') + ' waiting for answers.' : '') + '</div>';
+  } else {
+    sum.style.display = '';
+    var tot = 0, byCat = {};
+    revs.forEach(function(r){ tot += r.rating; if(!byCat[r.category]) byCat[r.category] = { s:0, n:0 }; byCat[r.category].s += r.rating; byCat[r.category].n++; });
+    sum.innerHTML = '<div class="big"><div class="n">' + (tot / revs.length).toFixed(1) + '</div><div class="t">★ overall · ' + revs.length + (revs.length === 1 ? ' review' : ' reviews') +
+      (openAsks ? '<br>🙋 ' + openAsks + ' open ' + (openAsks === 1 ? 'ask' : 'asks') : '') + '</div></div>' +
+      '<div class="bars">' + CATS.filter(function(c){ return byCat[c]; }).map(function(c){
+        var a = byCat[c].s / byCat[c].n;
+        return '<div class="bar"><span>' + escapeHTML(c) + '</span><div class="tr"><i style="width:' + (a / 5 * 100).toFixed(0) + '%"></i></div><span>' + a.toFixed(1) + '</span></div>';
+      }).join('') + '</div>';
+  }
+
+  /* trending strip */
+  var tl = trendList(), rankOf = {};
+  tl.forEach(function(r, i){ rankOf[r.id] = i + 1; });
+  $('trendBox').hidden = !tl.length;
+  $('trend').innerHTML = tl.map(function(r, i){
+    var tx = r.text.length > 90 ? r.text.slice(0, 88) + '…' : r.text;
+    return '<button type="button" class="t-card" data-jump="' + escapeHTML(r.id) + '"><span class="r">🔥 #' + (i + 1) + ' ' + (r.kind === 'ask' ? '🙋 Ask' : '⭐ Review') + '</span>' +
+      '<span class="tx">' + escapeHTML(tx) + '</span><span class="st">👍 ' + (r.upvotedBy || []).length + ' · 💬 ' + (r.replies || []).length + ' · ' + escapeHTML(ago(r.createdAt)) + '</span></button>';
+  }).join('');
+
+  /* chips */
+  var chipList = [['all', 'All'], ['ask', '🙋 Asks'], ['review', '⭐ Reviews']].concat(CATS.map(function(c){ return [c, c]; }));
+  $('revChips').innerHTML = chipList.map(function(c){
+    return '<button type="button" class="chip' + (revCat === c[0] ? ' on' : '') + '" data-cat="' + escapeHTML(c[0]) + '">' + escapeHTML(c[1]) + '</button>';
+  }).join('');
+
+  /* feed */
+  var list = all.filter(function(r){
+    if(revCat === 'all') return true;
+    if(revCat === 'ask') return r.kind === 'ask';
+    if(revCat === 'review') return r.kind !== 'ask';
+    return r.kind !== 'ask' && r.category === revCat;
+  });
+  list.sort(function(a, b){
+    if(boardSort === 'agree') return (b.upvotedBy || []).length - (a.upvotedBy || []).length || b.createdAt - a.createdAt;
+    if(boardSort === 'trend'){ var d = trendScore(b) - trendScore(a); if(d) return d; }
+    return b.createdAt - a.createdAt;
+  });
+  var feed = $('revFeed');
+  if(!list.length){
+    feed.innerHTML = all.length ? '<div class="empty"><b>Nothing here</b>Be the first to post in this category.</div>' :
+      '<div class="empty"><b>The notice board is empty</b>Post a review, or ask the hostel for something. Someone might actually have that iron box.</div>';
+    return;
+  }
+  feed.innerHTML = list.map(function(r){
+    var ask = r.kind === 'ask';
+    var ups = r.upvotedBy || [], reps = r.replies || [];
+    var upped = ups.indexOf(meL) !== -1, mine = lower(r.authorName) === meL;
+    var open = !!openBoard[r.id];
+    var ic = ask ? '🙋' : '📌';
+    var drawer = '';
+    if(open){
+      drawer = '<div class="drawer">' + (reps.length ? reps.map(function(p){
+        var pm = lower(p.authorName) === meL;
+        var btns = '';
+        if(ask && mine && !p.best && !r.solved) btns += '<button type="button" data-act="best" data-id="' + escapeHTML(r.id) + '" data-rid="' + escapeHTML(p.id) + '">✅ Mark best answer</button>';
+        if(pm) btns += '<button type="button" data-act="delrep" data-id="' + escapeHTML(r.id) + '" data-rid="' + escapeHTML(p.id) + '">✕ Remove</button>';
+        return '<div class="reply' + (p.best ? ' best' : '') + '"><b>' + escapeHTML(p.authorDisplay) + '</b>' + (p.best ? '<span class="best-tag">✅ Best answer</span>' : '') +
+          '<small data-ts="' + p.createdAt + '">' + escapeHTML(ago(p.createdAt)) + '</small><div>' + escapeHTML(p.text) + '</div>' + (btns ? '<div class="rb">' + btns + '</div>' : '') + '</div>';
+      }).join('') : '<div class="muted">' + (ask ? 'No answers yet. Be the hero this hostel deserves.' : 'No replies yet. Start the discussion.') + '</div>') +
+        '<div class="reply-form"><input type="text" class="reply-in" data-id="' + escapeHTML(r.id) + '" maxlength="200" placeholder="' + (ask ? 'Write your answer…' : 'Write a reply…') + '" value="' + escapeHTML(bdrafts[r.id] || '') + '">' +
+        '<button type="button" class="btn primary btn-bounce" data-act="send" data-id="' + escapeHTML(r.id) + '">Reply</button></div></div>';
+    }
+    return '<article class="card hov" data-id="' + escapeHTML(r.id) + '">' +
+      '<div class="post-head"><div class="bot-av" style="width:46px;height:46px" aria-hidden="true">' + ic + '</div>' +
+      '<div class="post-who"><div class="l">' + escapeHTML(ask ? 'Ask the hostel' : r.category) +
+      (ask ? (r.solved ? ' <span class="status solved">✅ Solved</span>' : ' <span class="status open">⏳ Open</span>') : '') +
+      (rankOf[r.id] ? ' <span class="status hot">🔥 Trending #' + rankOf[r.id] + '</span>' : '') + '</div>' +
+      '<div class="s">By ' + (r.isAnonymous ? '🕵️ ' : '') + '<b>' + escapeHTML(r.authorDisplay) + '</b> · <span data-ts="' + r.createdAt + '">' + escapeHTML(ago(r.createdAt)) + '</span></div></div>' +
+      (ask ? '' : '<span class="rate-badge">★ ' + escapeHTML(r.rating) + '</span>') + '</div>' +
+      '<p class="post-text" style="margin-top:10px">' + escapeHTML(r.text) + '</p>' +
+      '<div class="acts"><button type="button" class="act btn-bounce' + (upped ? ' on' : '') + '" data-act="up" data-id="' + escapeHTML(r.id) + '">👍 ' + (ask ? 'Need it too' : 'Agree') + ' (' + ups.length + ')</button>' +
+      '<button type="button" class="act' + (open ? ' on' : '') + '" data-act="reply" data-id="' + escapeHTML(r.id) + '" aria-expanded="' + open + '">💬 ' + (ask ? 'Answers' : 'Replies') + ' (' + reps.length + ')</button>' +
+      (ask && !mine && !r.solved ? '<button type="button" class="act have btn-bounce" data-act="have" data-id="' + escapeHTML(r.id) + '">🙌 I have it!</button>' : '') +
+      (mine ? '<button type="button" class="act del" data-act="del" data-id="' + escapeHTML(r.id) + '">🗑️ Delete</button>' : '') + '</div>' + drawer + '</article>';
+  }).join('');
+}
+
+$('revForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var err = $('rErr'); err.textContent = '';
+  var ask = composeKind === 'ask';
+  var text = $('rText').value.trim(), rating = ask ? 0 : +$('rStars').getAttribute('data-mine');
+  if(text.length < 5){ err.textContent = 'Write at least 5 characters.'; return; }
+  if(!ask && !rating){ err.textContent = 'Give the hostel a star rating (1–5).'; return; }
+  var anon = $('rAnon').checked;
+  var list = arr(K.rev);
+  list.unshift({ id: uid('h_'), kind: ask ? 'ask' : 'review', category: ask ? ASK_CAT : $('rCat').value, rating: rating, text: text,
+    authorName: me.name, authorDisplay: anon ? pick(ALIASES) : me.name, isAnonymous: anon, createdAt: Date.now(),
+    upvotedBy: [], replies: [], solved: false });
+  if(!write(K.rev, list)) return;
+  $('rText').value = ''; updRCount();
+  $('rStars').setAttribute('data-mine', '0'); paint($('rStars'), 0);
+  $('rAnon').checked = false;
+  revCat = 'all';
+  renderBoard(); renderSide();
+  toast(ask ? 'Ask posted! Hopefully someone has that iron box. 🙋' : 'Pinned to the Hostel Notice Board! 📌', 'success');
+});
+$('revChips').addEventListener('click', function(e){
+  var b = e.target.closest('.chip'); if(!b) return;
+  revCat = b.getAttribute('data-cat'); renderBoard();
+});
+$('boardSort').addEventListener('change', function(){ boardSort = this.value; renderBoard(); });
+
+function flashPost(id){
+  if(revCat !== 'all'){ revCat = 'all'; renderBoard(); }
+  var el = document.querySelector('#revFeed [data-id="' + id + '"]');
+  if(!el) return;
+  el.scrollIntoView({ behavior:'smooth', block:'center' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+$('trend').addEventListener('click', function(e){
+  var b = e.target.closest('[data-jump]'); if(b) flashPost(b.getAttribute('data-jump'));
+});
+
+function addBoardReply(id, text, quiet){
+  var list = arr(K.rev), r = null;
+  list.forEach(function(x){ if(x.id === id) r = x; });
+  if(!r) return false;
+  if(!Array.isArray(r.replies)) r.replies = [];
+  r.replies.push({ id: uid('br_'), authorName: me.name, authorDisplay: me.name, text: text, createdAt: Date.now() });
+  if(!write(K.rev, list)) return false;
+  delete bdrafts[id];
+  openBoard[id] = true;
+  renderBoard(); renderSide(); renderFame();
+  if(!quiet) toast('Reply posted. 💬', 'success');
+  return true;
+}
+
+$('revFeed').addEventListener('click', function(e){
+  var b = e.target.closest('[data-act]'); if(!b) return;
+  var id = b.getAttribute('data-id'), act = b.getAttribute('data-act');
+  var list = arr(K.rev), r = null;
+  list.forEach(function(x){ if(x.id === id) r = x; });
+  if(!r) return;
+  if(act === 'up'){
+    if(!Array.isArray(r.upvotedBy)) r.upvotedBy = [];
+    var i = r.upvotedBy.indexOf(meL);
+    if(i === -1) r.upvotedBy.push(meL); else r.upvotedBy.splice(i, 1);
+    write(K.rev, list); renderBoard(); renderSide();
+  } else if(act === 'reply'){
+    openBoard[id] = !openBoard[id];
+    renderBoard();
+    if(openBoard[id]){ var inp = document.querySelector('#revFeed .reply-in[data-id="' + id + '"]'); if(inp) inp.focus(); }
+  } else if(act === 'send'){
+    var input = document.querySelector('#revFeed .reply-in[data-id="' + id + '"]');
+    var text = input ? input.value.trim() : '';
+    if(!text){ toast('Write something before replying.', 'warning'); return; }
+    addBoardReply(id, text);
+  } else if(act === 'have'){
+    if(addBoardReply(id, 'I have it! 🙌 Find me in Room ' + me.room + ' (' + me.block + ').', true)) toast('Sent! The asker can now find you. 🦸', 'success');
+  } else if(act === 'best'){
+    if(lower(r.authorName) !== meL){ toast('Only the person who asked can pick the best answer.', 'error'); return; }
+    var rid = b.getAttribute('data-rid');
+    (r.replies || []).forEach(function(p){ p.best = (p.id === rid); });
+    r.solved = true;
+    write(K.rev, list); renderBoard(); renderFame(); renderResidents();
+    toast('Marked as solved. A Helpful Hero is born! 🦸', 'success');
+  } else if(act === 'delrep'){
+    var rid2 = b.getAttribute('data-rid');
+    r.replies = (r.replies || []).filter(function(p){ return !(p.id === rid2 && lower(p.authorName) === meL); });
+    if(!r.replies.some(function(p){ return p.best; })) r.solved = false;
+    write(K.rev, list); renderBoard(); renderFame(); renderResidents();
+    toast('Reply removed.', 'info', 2200);
+  } else if(act === 'del'){
+    if(lower(r.authorName) !== meL){ toast('You can only delete your own posts.', 'error'); return; }
+    armDelete(b, function(){
+      write(K.rev, list.filter(function(x){ return x.id !== id; }));
+      delete openBoard[id]; delete bdrafts[id];
+      renderBoard(); renderSide(); renderFame(); renderResidents();
+      toast('Post removed.', 'info');
+    });
+  }
+});
+$('revFeed').addEventListener('input', function(e){
+  if(e.target.classList.contains('reply-in')) bdrafts[e.target.getAttribute('data-id')] = e.target.value;
+});
+$('revFeed').addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && e.target.classList.contains('reply-in')){
+    e.preventDefault();
+    var id = e.target.getAttribute('data-id'), t = e.target.value.trim();
+    if(!t){ toast('Write something before replying.', 'warning'); return; }
+    addBoardReply(id, t);
+  }
+});
+
+/* ================= HALL OF FAME ================= */
+function renderFame(){
+  var res = arr(K.res), st = allStats(), B = computeBadges();
+  var rows = res.map(function(r){ var s = st[lower(r.name)]; return { r:r, avg: s ? s.avg : 0, count: s ? s.count : 0 }; });
+  rows.sort(function(a, b){
+    if(!!a.count !== !!b.count) return a.count ? -1 : 1;
+    return b.avg - a.avg || b.count - a.count;
+  });
+  var medals = ['🥇', '🥈', '🥉'];
+  $('standings').innerHTML = rows.length ? rows.map(function(x, i){
+    var nl = lower(x.r.name);
+    var bch = (B.byUser[nl] || []).map(function(d){ return d.icon; }).join(' ');
+    return '<div class="rk"><div class="md">' + (x.count ? (medals[i] || (i + 1)) : '·') + '</div>' + av(x.r.name, 40) +
+      '<div class="nm">' + escapeHTML(x.r.name) + (nl === meL ? ' <span class="you">YOU</span>' : '') + '<small>' + escapeHTML(x.r.block) + ' · Room ' + escapeHTML(x.r.room) + (bch ? ' · ' + bch : '') + '</small></div>' +
+      '<div class="sc">' + (x.count ? x.avg.toFixed(1) + ' ★<br><small style="color:var(--mut);font-size:11px">' + x.count + (x.count === 1 ? ' rating' : ' ratings') + '</small>' : '🐣 Unrated') + '</div></div>';
+  }).join('') : '<div class="empty"><b>No residents yet</b></div>';
+
+  $('badges').innerHTML = B.defs.map(function(d){
+    return '<div class="card bd-card"><div class="ic">' + d.icon + '</div><b>' + escapeHTML(d.label) + '</b><p>' + escapeHTML(d.desc) + '</p>' +
+      (d.holder ? '<div class="hd">Held by ' + escapeHTML(d.holder) + ' (' + d.w.n + ')</div>' : '<div class="hd none">Unclaimed. Be the first.</div>') + '</div>';
+  }).join('');
+
+  /* mess poll */
+  var poll = obj(K.poll), today = poll[dkey()] || { yes:[], no:[] };
+  var yes = (today.yes || []).length, no = (today.no || []).length, tot = yes + no;
+  var myYes = (today.yes || []).indexOf(meL) !== -1, myNo = (today.no || []).indexOf(meL) !== -1;
+  var days = '';
+  for(var i = 6; i >= 0; i--){
+    var d = new Date(Date.now() - i * 864e5), p = poll[dkey(d)] || { yes:[], no:[] };
+    var y = (p.yes || []).length, t = y + (p.no || []).length;
+    days += '<div class="col"><div class="tube" title="' + (t ? Math.round(y / t * 100) + '% edible' : 'No votes') + '"><i style="height:' + (t ? Math.round(y / t * 100) : 0) + '%"></i></div>' +
+      '<span>' + escapeHTML(d.toLocaleDateString([], { weekday:'short' })) + '</span></div>';
+  }
+  $('poll').innerHTML = '<b>Was today\'s mess edible?</b><p class="muted">One vote per student per day. You can change your vote.</p>' +
+    '<div class="poll-btns"><button type="button" class="btn-bounce' + (myYes ? ' on' : '') + '" data-v="yes">😋 Edible (' + yes + ')</button>' +
+    '<button type="button" class="btn-bounce' + (myNo ? ' on' : '') + '" data-v="no">🤢 Biohazard (' + no + ')</button></div>' +
+    (tot ? '<div class="pbar" aria-label="' + Math.round(yes / tot * 100) + ' percent edible"><i style="width:' + (yes / tot * 100) + '%"></i></div><p class="muted" style="margin-top:6px">' + Math.round(yes / tot * 100) + '% say edible · ' + tot + (tot === 1 ? ' vote' : ' votes') + ' today</p>' :
+      '<p class="muted">No votes yet today. The mess uncle is waiting.</p>') +
+    '<div class="hist" aria-label="Edible percentage over the last 7 days">' + days + '</div>';
+}
+$('poll').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-v]'); if(!b) return;
+  var choice = b.getAttribute('data-v'), other = choice === 'yes' ? 'no' : 'yes';
+  var poll = obj(K.poll), k = dkey();
+  var day = poll[k] || { yes:[], no:[] };
+  if(!Array.isArray(day.yes)) day.yes = []; if(!Array.isArray(day.no)) day.no = [];
+  day[other] = day[other].filter(function(n){ return n !== meL; });
+  var had = day[choice].indexOf(meL) !== -1;
+  day[choice] = day[choice].filter(function(n){ return n !== meL; });
+  if(!had) day[choice].push(meL);
+  poll[k] = day;
+  if(!write(K.poll, poll)) return;
+  renderFame();
+  toast(had ? 'Vote removed.' : (choice === 'yes' ? 'Logged: edible. A rare miracle. 😋' : 'Logged: biohazard. The warden has been notified (not really). 🤢'), 'info', 2600);
+});
+
+/* ================= SIDEBAR ================= */
+function leadHTML(label, x, bad){
+  if(!x) return '<div class="lead none"><span>' + label + ': not enough ratings yet.</span></div>';
+  return '<div class="lead' + (bad ? ' bad' : '') + '">' + av(x.r.name, 42) + '<div><small>' + label + '</small><b>' + escapeHTML(x.r.name) + '</b></div><span class="sc">' + x.avg.toFixed(1) + ' ★</span></div>';
+}
+function renderSide(){
+  var L = leaders();
+  $('leaders').innerHTML = leadHTML('🏆 Top Rated Roomie', L.top, false) + leadHTML('🚨 Most Suspect Roomie', L.suspect, true);
+  var ups = 0;
+  var com = arr(K.com); com.forEach(function(c){ ups += (c.upvotedBy || []).length; });
+  arr(K.rev).forEach(function(r){ ups += (r.upvotedBy || []).length; });
+  $('stats').innerHTML = '<div><b>' + arr(K.res).length + '</b><span>Residents</span></div><div><b>' + com.length + '</b><span>Complaints</span></div><div><b>' + ups + '</b><span>Total 🔥</span></div>';
+
+  /* "Who rated me": only counts are ever read, names are never put on the page */
+  var rat = obj(K.rat);
+  var direct = rat[meL] ? Object.keys(rat[meL]).length : 0;
+  var about = com.filter(function(c){ return lower(c.targetName) === meL; }).length;
+  var n = direct + about;
+  var h = '<h3>🔒 Who Rated Me?</h3>';
+  if(!n){
+    h += '<p class="muted">Nobody has rated or reviewed you yet. Peaceful. Suspiciously peaceful.</p>';
+  } else {
+    var rows = '';
+    for(var i = 0; i < Math.min(n, 3); i++) rows += '<div><i></i><s style="width:' + (50 + i * 12) + '%"></s></div>';
+    h += '<p class="muted"><b style="color:var(--am)">' + n + '</b> ' + (n === 1 ? 'person has' : 'people have') + ' rated or reviewed you (' + direct + ' star ' + (direct === 1 ? 'vote' : 'votes') + ', ' + about + (about === 1 ? ' complaint' : ' complaints') + ').</p>' +
+      '<div class="ghosts" aria-hidden="true">' + rows + '</div>' +
+      '<button type="button" class="btn pro btn-bounce" id="unmaskBtn" style="width:100%">🔓 Unmask for ₹150</button>';
+  }
+  $('whoCard').innerHTML = h;
+}
+$('whoCard').addEventListener('click', function(e){ if(e.target.closest('#unmaskBtn')) openPro(); });
+
+function renderAll(){ renderNav(); renderResidents(); renderTargets(); renderSide(); renderFeed(); renderBoard(); renderFame(); }
+
+/* ================= GLOBAL STAR + BUTTON EVENTS ================= */
+document.addEventListener('mouseover', function(e){
+  var s = e.target.closest('.star'); if(!s || s.disabled) return;
+  var row = s.closest('.star-row'); if(row) paint(row, +s.getAttribute('data-v'));
+});
+document.addEventListener('mouseout', function(e){
+  var row = e.target.closest ? e.target.closest('.star-row') : null;
+  if(row && !row.contains(e.relatedTarget)) paint(row, +row.getAttribute('data-mine') || 0);
+});
+document.addEventListener('click', function(e){
+  var s = e.target.closest('.star');
+  if(s && !s.disabled){
+    var row = s.closest('.star-row'), v = +s.getAttribute('data-v');
+    if(row.getAttribute('data-kind') === 'resident') rateResident(row.getAttribute('data-target'), v);
+    else { row.setAttribute('data-mine', String(v)); paint(row, v); }
+    return;
+  }
+  var c = e.target.closest('.complain');
+  if(c && !c.disabled){
+    bounce(c);
+    goComposer(c.getAttribute('data-target'));
+  }
+});
+function goComposer(name){
+  var tl = lower(name);
+  goto('wall');
+  if(tl){
+    $('cTarget').value = tl;
+    if($('cTarget').value !== tl) $('cTarget').value = '';
+  }
+  $('composer').scrollIntoView({ behavior:'smooth', block:'center' });
+  setTimeout(function(){ $('cText').focus({ preventScroll:true }); }, 450);
+}
+
+/* ================= PRO MODAL ================= */
+var payLock = false;
+function show(view){
+  ['vPitch', 'vBusy', 'vFail'].forEach(function(v){ $(v).hidden = v !== view; });
+}
+function openPro(){
+  payLock = false;
+  show('vPitch');
+  $('upiErr').textContent = ''; $('proX').disabled = false;
+  $('proOv').hidden = false;
+  document.body.style.overflow = 'hidden';
+  setTimeout(function(){ $('upiId').focus(); }, 50);
+}
+function closePro(){
+  if(payLock){ toast('Payment in progress. Please wait…', 'warning', 2000); return; }
+  $('proOv').hidden = true; document.body.style.overflow = '';
+}
+$('goPro').addEventListener('click', openPro);
+$('promoBtn').addEventListener('click', openPro);
+$('proX').addEventListener('click', closePro);
+$('failClose').addEventListener('click', closePro);
+$('proOv').addEventListener('mousedown', function(e){ if(e.target === $('proOv')) closePro(); });
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    if(!$('proOv').hidden) closePro();
+    else if(!$('chat').hidden) closeChat();
+  }
+});
+$('upis').addEventListener('click', function(e){
+  var b = e.target.closest('.upi'); if(!b) return;
+  var bs = $('upis').querySelectorAll('.upi');
+  for(var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i] === b);
+});
+$('upiId').addEventListener('input', function(){ $('upiErr').textContent = ''; });
+$('payBtn').addEventListener('click', function(){
+  var id = $('upiId').value.trim();
+  if(!/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(id)){
+    $('upiErr').textContent = 'Enter a valid UPI ID like name@okbank.';
+    toast('That UPI ID looks fake. Even your bank is confused.', 'warning');
+    return;
+  }
+  var app = ($('upis').querySelector('.upi.on') || {}).textContent || 'UPI';
+  payLock = true; $('proX').disabled = true;
+  $('busyTxt').textContent = 'Connecting to NPCI UPI Switch...';
+  show('vBusy');
+  setTimeout(function(){ $('busyTxt').textContent = 'Awaiting Bank Approval...'; }, 1150);
+  setTimeout(function(){
+    payLock = false; $('proX').disabled = false;
+    show('vFail');
+    toast(app + ' payment failed: ERR_BROKE_ENGINEER', 'error', 4500);
+  }, 2300);
+});
+
+/* ================= CHATBOT ================= */
+var chatOpen = false, unread = 0, busy = false;
+function chatHistory(){ return arr(K.chat); }
+function pushMsg(sender, text, extra){
+  var h = chatHistory();
+  var m = { sender: sender, text: text, time: new Date().toISOString() };
+  if(extra){ m.copyText = extra.copyText; m.copyTarget = extra.copyTarget; }
+  h.push(m);
+  if(h.length > 80) h = h.slice(h.length - 80);
+  write(K.chat, h);
+  return m;
+}
+function renderChat(){
+  var box = $('msgs');
+  box.innerHTML = chatHistory().map(function(m){
+    var inner = escapeHTML(m.text);
+    if(m.copyText){
+      inner += '<div class="quote">' + escapeHTML(m.copyText) + '</div>' +
+        '<button type="button" class="copy btn-bounce" data-copy="' + escapeHTML(m.copyText) + '" data-target="' + escapeHTML(m.copyTarget || '') + '">📋 Copy to Composer</button>';
+    }
+    return '<div class="m ' + (m.sender === 'user' ? 'user' : 'bot') + '">' + inner + '<time>' + escapeHTML(hhmm(m.time)) + '</time></div>';
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+function setUnread(n){
+  unread = n; var u = $('unread');
+  u.hidden = n <= 0; u.textContent = n > 9 ? '9+' : String(n);
+}
+function greet(){
+  pushMsg('bot', 'Namaste, ' + me.name.split(' ')[0] + '! I am WardenBot AI, the hostel chaos assistant. Ask me who is most suspect, who is top rated, what is trending, or type a roomie\'s name for a fresh roast. 🫡');
+}
+function openChat(){
+  chatOpen = true; $('chat').hidden = false; $('chatFab').hidden = true; setUnread(0);
+  renderChat(); setTimeout(function(){ $('chatIn').focus(); }, 60);
+}
+function closeChat(){ chatOpen = false; $('chat').hidden = true; $('chatFab').hidden = false; }
+$('chatFab').addEventListener('click', openChat);
+$('closeChat').addEventListener('click', closeChat);
+$('clearChat').addEventListener('click', function(){
+  write(K.chat, []); greet(); renderChat(); toast('Chat cleared. WardenBot has amnesia now.', 'info', 2500);
+});
+$('sugs').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-q]'); if(b) sendUser(b.getAttribute('data-q'));
+});
+$('chatForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var v = $('chatIn').value.trim(); if(!v) return;
+  $('chatIn').value = ''; sendUser(v);
+});
+$('msgs').addEventListener('click', function(e){
+  var b = e.target.closest('.copy'); if(!b) return;
+  bounce(b);
+  var text = b.getAttribute('data-copy'), target = b.getAttribute('data-target');
+  closeChat();
+  goComposer(target && lower(target) !== meL ? target : '');
+  $('cText').value = text.slice(0, 280); updCCount();
+  toast('Roast copied to the Complaint Composer. Go post it! 📋', 'success');
+});
+
+var ROASTS = [
+  function(n, r){ return n + ' (Room ' + r + ') treats "borrowed" as "mine forever". My charger has been missing since Tuesday and so has my faith in humanity. 🔌'; },
+  function(n, r){ return 'Dear ' + n + ': a 16°C AC is not a personality. Room ' + r + ' is basically Antarctica with WiFi. Let us keep our toes. ❄️'; },
+  function(n, r){ return n + ' calls themselves a "light sleeper" while screaming "ONE MORE ROUND" at 3 AM. Room ' + r + ' has no peace, only Valorant. 🎧'; },
+  function(n, r){ return 'Breaking news: ' + n + ' ate my midnight Maggi and left only the tastemaker packet as evidence. Room ' + r + ', we know what you did. 🍜'; },
+  function(n, r){ return n + ' of Room ' + r + ' never flushes. The toilet is not broken, it is just waiting for a better roommate. 🚽'; },
+  function(n, r){ return 'My underwear left the balcony and ' + n + ' (Room ' + r + ') suddenly has a new wardrobe. Coincidence? I think not. 🩲'; }
+];
+var ADVICE = [
+  { re:/iron|borrow|lend|spare|\bask\b|anyone have/, a:[
+    'Need an iron box (or anything else)? Switch to the 📌 Notice Board, pick "Ask the hostel" and post it. Someone taps "I have it!" within minutes, or never, it is a hostel. 🧺',
+    'Borrowing etiquette: ask nicely on the Notice Board, return it clean, and mark the best answer so the hero gets a badge. 🦸' ] },
+  { re:/underwear|undies|laundry|balcony|clothes/, a:[
+    'Underwear theft protocol: 1) Never dry them on the balcony railing, that is a public buffet. 2) Write your name on the waistband like it is a Class 10 notebook. 3) File a complaint here so the whole hostel knows. 🩲',
+    'Hostel law #1: whatever hangs outside after 6 PM belongs to the universe. Dry indoors, label everything, and post the culprit on the Hostel Wall. 🩲' ] },
+  { re:/maggi|noodle|midnight|snack|food|mess/, a:[
+    'Maggi rules: label your packets, hide the tastemaker (it is the real currency), and never leave a pot unattended. A hungry roommate has no morals. 🍜',
+    'The mess serves "paneer" that is suspiciously yellow tofu. Survive on Maggi, but guard it like gold. Also vote in the Daily Mess Poll in the Hall of Fame. 🍛' ] },
+  { re:/charger|cable|adapter|plug/, a:[
+    'Charger survival: tie a bright cable to it, write your room number on it, and never lend it to anyone with a 2% phone. They always return as 0%. 🔌',
+    'A charger left unattended is a charger adopted. Keep a spare, label everything, and file a complaint with the 🔌 tag. 🔌' ] },
+  { re:/\bac\b|a\/c|cold|16|temperature|freez/, a:[
+    'AC diplomacy: set it to 24°C, wear a hoodie, and negotiate like a UN delegate. Anyone who sets 16°C must be reported on the Wall. ❄️',
+    'A 16°C AC in a hostel is a hate crime against blankets. Compromise at 24°C or start a petition. ❄️' ] },
+  { re:/flush|toilet|bathroom|smell|biohazard|clean/, a:[
+    'Toilet rule: flush, wash, repeat. If your roommate fails, the correct escalation is passive-aggressive sticky notes, then a complaint tagged 🚽.',
+    'Cleanliness is next to godliness; your room is next to the warden. Clean up before inspection day. 🧹' ] },
+  { re:/valorant|noise|loud|scream|3 ?am|sleep|game|gaming/, a:[
+    'Night owl etiquette: headphones on, mic muted, and nobody needs to hear your clutch. If they scream anyway, tag them 🎧 on the Wall. 🎧',
+    'Quiet hours exist for a reason. Sadly, so do 4 AM ranked matches. Earplugs are cheaper than justice. 😴' ] },
+  { re:/warden|rule|survive|survival|hostel|help|tips?/, a:[
+    'Hostel survival 101: label your food, lock your charger, befriend the mess uncle, and never trust a roommate who says "just five minutes". 🫡',
+    'Warden-approved rules: no late-night noise, no cooking in the room (we all do it anyway), and keep your complaints on the Wall, not in the corridor. 🫡' ] }
+];
+
+function brain(msg){
+  var q = lower(msg), rs = arr(K.res), L = leaders();
+
+  if(/\b(suspect|worst|menace|villain|culprit|criminal|lowest)\b/.test(q)){
+    if(!L.suspect){
+      return { text: L.top ? 'Only one roomie has been rated so far, so nobody can be the "most suspect" yet. Rate more residents and I will start naming names. 🕵️' :
+        'No ratings yet. The hostel is suspiciously peaceful. Rate a few roomies and I will name the culprit. 🕵️' };
+    }
+    var x = L.suspect, cr = crimesFor(lower(x.r.name));
+    return { text: '🚨 Most Suspect: ' + x.r.name + ' (Room ' + x.r.room + ') with ' + x.avg.toFixed(1) + ' ★ across ' + x.count + (x.count === 1 ? ' rating' : ' ratings') + '. ' +
+      (cr.n ? 'Complaints on file: ' + cr.n + (cr.topTag ? ', mostly "' + cr.topTag + '"' : '') + '.' : 'No formal complaints yet, just vibes.') + ' Stay alert. 👀' };
+  }
+  if(/\b(top|best|saint|favou?rite|nicest|highest)\b/.test(q)){
+    if(!L.top) return { text: 'Nobody has been rated yet, so everyone is technically a saint. Rate your roomies to crown the champion. 🏆' };
+    return { text: '🏆 Top Rated: ' + L.top.r.name + ' (Room ' + L.top.r.room + ') with ' + L.top.avg.toFixed(1) + ' ★ from ' + L.top.count + (L.top.count === 1 ? ' rating' : ' ratings') + '. A genuine Hostel Saint. Please do not corrupt them. 😇' };
+  }
+  if(/\b(trending|popular|hot|buzz)\b/.test(q)){
+    var tl = trendList();
+    if(!tl.length) return { text: 'Nothing is trending yet. Agree with or reply to a Notice Board post and it will start climbing. 📌' };
+    var t = tl[0], tx = t.text.length > 110 ? t.text.slice(0, 108) + '…' : t.text;
+    return { text: '🔥 Trending on the Notice Board: "' + tx + '" (' + (t.upvotedBy || []).length + ' agrees, ' + (t.replies || []).length + ' replies). Go join the chaos. 📌' };
+  }
+
+  var named = null;
+  rs.slice().sort(function(a, b){ return b.name.length - a.name.length; }).forEach(function(r){
+    if(!named && new RegExp('(^|\\W)' + escRe(lower(r.name)) + '(\\W|$)').test(q)) named = r;
+  });
+  var wantsRoast = /\b(roast|write|draft|savage|complaint|burn)\b/.test(q);
+  if(wantsRoast || named){
+    var target = named;
+    if(!target && L.suspect) target = L.suspect.r;
+    if(!target){
+      var others = rs.filter(function(r){ return lower(r.name) !== meL; });
+      if(others.length) target = pick(others);
+    }
+    if(!target){
+      return { text: 'I have nobody to roast yet. Ask your roommates to check in first, then I will cook. 🔥' };
+    }
+    var roast = pick(ROASTS)(target.name, target.room).slice(0, 280);
+    return { text: 'Fresh from the roast oven for ' + target.name + ': 🔥', copyText: roast, copyTarget: target.name };
+  }
+
+  for(var i = 0; i < ADVICE.length; i++){
+    if(ADVICE[i].re.test(q)) return { text: pick(ADVICE[i].a) };
+  }
+  if(/\b(hi|hello|hey|namaste|yo)\b/.test(q)) return { text: 'Hello, ' + me.name.split(' ')[0] + '! Try: "Who is Most Suspect?", "Write a savage roast", "What is trending?", or ask about Maggi, chargers, the AC or underwear. 🫡' };
+  if(/\b(pro|premium|pay|unmask)\b/.test(q)) return { text: 'Unmasking who rated you costs ₹150 on Pro. I have seen the bank decline rates though. Good luck, engineer. 💸' };
+  return { text: 'I did not catch that. Ask me about the most suspect or top rated roomie, what is trending, say "write a roast", type a roomie\'s name, or ask about Maggi, chargers, AC or underwear theft. 🤖' };
+}
+
+function sendUser(text){
+  if(busy) return;
+  busy = true;
+  pushMsg('user', text); renderChat();
+  var box = $('msgs');
+  var t = document.createElement('div');
+  t.className = 'typing'; t.innerHTML = '<span>WardenBot is typing</span><i></i><i></i><i></i>';
+  box.appendChild(t); box.scrollTop = box.scrollHeight;
+  var delay = 500 + Math.floor(Math.random() * 400);
+  setTimeout(function(){
+    var r = brain(text);
+    pushMsg('bot', r.text, r.copyText ? { copyText: r.copyText, copyTarget: r.copyTarget } : null);
+    busy = false;
+    if(chatOpen) renderChat(); else setUnread(unread + 1);
+  }, delay);
+}
+
+/* ================= NAV ACTIONS ================= */
+function leave(){
+  try{ localStorage.removeItem(K.user); }catch(e){}
+  window.location.href = 'index.html';
+}
+$('switchBtn').addEventListener('click', leave);
+$('logoutBtn').addEventListener('click', leave);
+
+var resetArmed = false, resetTimer = null;
+$('resetBtn').addEventListener('click', function(){
+  var b = this;
+  if(!resetArmed){
+    resetArmed = true; b.classList.add('armed'); b.textContent = '⚠️ Click again within 4s to wipe everything';
+    toast('This deletes ALL residents, ratings, complaints and chats. Click again to confirm.', 'warning', 4000);
+    resetTimer = setTimeout(function(){ resetArmed = false; b.classList.remove('armed'); b.textContent = '🗑️ Reset Browser Data'; }, 4000);
+    return;
+  }
+  clearTimeout(resetTimer);
+  try{
+    Object.keys(localStorage).filter(function(k){ return k.indexOf('rr_') === 0; }).forEach(function(k){ localStorage.removeItem(k); });
+  }catch(e){}
+  window.location.replace('index.html');
+});
+
+/* ================= INIT ================= */
+initStatic();
+renderAll();
+showView(viewFromHash(), true);
+if(!chatHistory().length){ greet(); setUnread(1); } else { setUnread(0); }
+renderChat();
+
+setInterval(function(){
+  var els = document.querySelectorAll('[data-ts]');
+  for(var i = 0; i < els.length; i++) els[i].textContent = ago(+els[i].getAttribute('data-ts'));
+}, 30000);
+
+/* keep multiple tabs in sync */
+window.addEventListener('storage', function(e){
+  if(e.key && e.key.indexOf('rr_') === 0 && e.key !== K.chat && e.key !== K.user){ renderAll(); }
+});
+})();
+</script>
+</body>
+</html>
