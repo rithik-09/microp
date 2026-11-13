@@ -253,5 +253,146 @@ input.bad{border-color:var(--rd);box-shadow:0 0 0 3px rgba(248,113,113,.18)}
   renderPills();
 })();
 </script>
+<!-- ===== LIGHT / DARK MODE: paste this whole block right before </body> ===== -->
+<style>
+/* ---------- light palette (dark stays your existing default) ---------- */
+html[data-theme="dark"]{color-scheme:dark}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f3f4fa; --card:rgba(255,255,255,.88); --card2:#ffffff; --bd:rgba(22,26,43,.14);
+  --tx:#161a2b; --mut:#5b6380; --in:#5457e6; --in2:#4338ca;
+  --am:#b45309; --rd:#dc2626; --gr:#047857; --bl:#2563eb;
+}
+html[data-theme="light"] body{
+  background-image:
+    radial-gradient(60rem 30rem at 10% -10%, rgba(99,102,241,.14), transparent 60%),
+    radial-gradient(50rem 28rem at 100% 40%, rgba(245,158,11,.12), transparent 60%)}
+
+/* surfaces */
+html[data-theme="light"] .nav{background:rgba(255,255,255,.86)}
+html[data-theme="light"] .bottom{background:rgba(255,255,255,.95)}
+html[data-theme="light"] .chat{background:rgba(255,255,255,.97)}
+html[data-theme="light"] .modal,
+html[data-theme="light"] .toast{background:#fff}
+html[data-theme="light"] .ov{background:rgba(22,26,43,.45)}
+html[data-theme="light"] .card{box-shadow:0 1px 2px rgba(22,26,43,.06),0 10px 30px rgba(22,26,43,.08)}
+html[data-theme="light"] .toast,
+html[data-theme="light"] .modal{box-shadow:0 20px 60px rgba(22,26,43,.25)}
+
+/* form fields */
+html[data-theme="light"] input:not([type="checkbox"]),
+html[data-theme="light"] select,
+html[data-theme="light"] textarea{background:#fff}
+html[data-theme="light"] select option{background:#fff;color:#161a2b}
+
+/* translucent panels that were tinted white-on-dark */
+html[data-theme="light"] .reply,
+html[data-theme="light"] .lead,
+html[data-theme="light"] .stats div,
+html[data-theme="light"] .rk,
+html[data-theme="light"] .quote,
+html[data-theme="light"] .perks li,
+html[data-theme="light"] .m.bot,
+html[data-theme="light"] .typing,
+html[data-theme="light"] .act,
+html[data-theme="light"] .pill{background:rgba(22,26,43,.05)}
+html[data-theme="light"] .bar .tr,
+html[data-theme="light"] .hist .tube{background:rgba(22,26,43,.1)}
+html[data-theme="light"] .reply.best{background:rgba(16,185,129,.1)}
+html[data-theme="light"] .ghosts i{background:#9aa3bd}
+html[data-theme="light"] .ghosts s{background:#b6bdd3}
+html[data-theme="light"] .preview img{background:#e5e7f5}
+
+/* stars */
+html[data-theme="light"] .star{color:#c9cee0}
+html[data-theme="light"] .star.on{color:#f59e0b}
+
+/* pale text colours that need to go darker on a light background */
+html[data-theme="light"] .tag-pill,
+html[data-theme="light"] .bchip{color:#4338ca}
+html[data-theme="light"] .tag-pill.good,
+html[data-theme="light"] .act.have{color:#047857}
+html[data-theme="light"] .act.on,
+html[data-theme="light"] .upi.on,
+html[data-theme="light"] .poll-btns button.on{color:#92400e}
+html[data-theme="light"] .act.del,
+html[data-theme="light"] .small-btn,
+html[data-theme="light"] .errcode,
+html[data-theme="light"] .reset.armed{color:#b91c1c}
+html[data-theme="light"] .act.del.armed{color:#7f1d1d}
+html[data-theme="light"] .links a.on,
+html[data-theme="light"] .chip.on{color:#3730a3}
+html[data-theme="light"] .t-card .r,
+html[data-theme="light"] .status.hot{color:#c2410c}
+html[data-theme="light"] .promo p{color:var(--tx)}
+html[data-theme="light"] .you,
+html[data-theme="light"] .copy{background:#f59e0b}
+
+/* ---------- the toggle button ---------- */
+.theme-btn{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--bd);background:var(--card2);color:var(--tx);font-size:17px;line-height:1;cursor:pointer;
+  transition:transform .15s,border-color .2s}
+.theme-btn:hover{transform:rotate(-12deg) scale(1.08);border-color:var(--am)}
+.theme-btn:active{transform:scale(.92)}
+.theme-btn:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+.theme-btn.floating{position:fixed;top:14px;right:14px;z-index:300}
+@media (max-width:640px){.theme-btn{width:34px;height:34px;font-size:15px;border-radius:10px}}
+
+/* smooth cross-fade while switching (skipped for reduced motion) */
+html.theme-anim *,html.theme-anim *::before,html.theme-anim *::after{
+  transition:background-color .25s ease,color .25s ease,border-color .25s ease!important}
+</style>
+
+<script>
+(function(){
+  'use strict';
+  var KEY = 'roomie_theme';            // saved choice: 'light' or 'dark'
+  var root = document.documentElement;
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'theme-btn';
+
+  function saved(){ try{ return localStorage.getItem(KEY); }catch(e){ return null; } }
+  function save(t){ try{ localStorage.setItem(KEY, t); }catch(e){} }
+
+  function apply(t){
+    root.setAttribute('data-theme', t);
+    var next = t === 'light' ? 'dark' : 'light';
+    btn.textContent = t === 'light' ? '🌙' : '☀️';
+    btn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+    btn.title = 'Switch to ' + next + ' mode';
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(!m){ m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
+    m.content = t === 'light' ? '#f3f4fa' : '#080a0f';
+  }
+
+  btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!calm){ root.classList.add('theme-anim'); setTimeout(function(){ root.classList.remove('theme-anim'); }, 350); }
+    apply(next); save(next);
+  });
+
+  // put the button in the dashboard navbar, or float it top-right on the login page
+  var host = document.querySelector('.nav-in');
+  if(host){
+    var pro = document.getElementById('goPro');
+    host.insertBefore(btn, pro && pro.parentNode === host ? pro : null);
+  }else{
+    btn.className += ' floating';
+    document.body.appendChild(btn);
+  }
+
+  // default = dark (your original design). To follow the phone/PC setting instead, use:
+  // apply(saved() || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  apply(saved() === 'light' ? 'light' : 'dark');
+
+  // keep two open tabs in sync
+  window.addEventListener('storage', function(e){
+    if(e.key === KEY) apply(e.newValue === 'light' ? 'light' : 'dark');
+  });
+})();
+</script>
+<!-- ===== end of light / dark mode block ===== -->
 </body>
 </html>
